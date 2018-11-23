@@ -1,5 +1,7 @@
 # sequelize-simple-cache
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/frankthelen/sequelize-simple-cache.svg)](https://greenkeeper.io/)
+
 This is a simple, transparent, client-side, in-memory cache for [Sequelize](https://github.com/sequelize/sequelize) v4.
 Cache invalidation is based on time-to-live (ttl).
 Selectively add your Sequelize models to the cache.
