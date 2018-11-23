@@ -1,0 +1,49 @@
+{
+  "name": "sequelize-simple-cache",
+  "version": "1.0.0-beta.1",
+  "description": "A simple, transparent, client-side, in-memory cache for Sequelize",
+  "main": "src/SequelizeSimpleCache.js",
+  "author": "Frank Thelen",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/frankthelen/sequelize-simple-cache"
+  },
+  "keywords": [
+    "Sequelize",
+    "cache",
+    "transparent"
+  ],
+  "scripts": {
+    "lint": "eslint . --ignore-path ./.eslintignore",
+    "test": "NODE_ENV=test mocha --recursive test",
+    "cover": "NODE_ENV=test nyc --reporter=lcov --reporter=text-summary mocha --exit --recursive test",
+    "coveralls": "npm run cover && nyc report --reporter=lcovonly && cat ./coverage/lcov.info | coveralls",
+    "preversion": "npm run lint && npm test"
+  },
+  "engines": {
+    "node": ">=8.9.0"
+  },
+  "peerDependencies": {
+    "sequelize": ">=4.x.x"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "coveralls": "^3.0.2",
+    "eslint": "^5.7.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-should-promised": "^2.0.0",
+    "mocha": "^5.2.0",
+    "nyc": "^13.1.0",
+    "sinon": "^7.0.0",
+    "sinon-chai": "^3.2.0"
+  },
+  "dependencies": {
+    "bluebird": "^3.5.3",
+    "md5": "^2.2.1"
+  }
+}
