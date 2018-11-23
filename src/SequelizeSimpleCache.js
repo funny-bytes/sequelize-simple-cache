@@ -5,15 +5,43 @@ const assert = require('assert');
 
 class SequelizeSimpleCache {
   constructor(config = {}, options = {}) {
-    this.config = config;
-    this.methods = [
-      'findById', 'findOne', 'findAll', 'findAndCountAll',
-      'count', 'min', 'max', 'sum',
-    ];
+    this.defaults = {
+      ttl: 60 * 60, // 1 hour
+      methods: ['findById', 'findOne', 'findAll', 'findAndCountAll', 'count', 'min', 'max', 'sum'],
+    };
+    this.config = Object.entries(config)
+      .reduce((acc, [name, { ttl = this.defaults.ttl, methods = this.defaults.methods }]) => ({
+        ...acc,
+        [name]: { ttl, methods },
+      }), {});
     const { debug = false } = options;
+    this.debug = debug;
     this.cache = new Map();
-    this.debug = (...args) => debug && console.debug(...args); // eslint-disable-line no-console
     this.disabled = new Set();
+  }
+
+  log(tag, details) {
+    if (!this.debug) return;
+    const { args, data } = details;
+    const out = details;
+    if (args) {
+      out.args = SequelizeSimpleCache.stringify(args);
+    }
+    if (data) {
+      out.data = JSON.stringify(data);
+    }
+    console.debug(`>>> CACHE ${tag.toUpperCase()} >>>`, out); // eslint-disable-line no-console
+  }
+
+  static stringify(obj) {
+    // Unfortunately, there seam to be no stringifyers or object hashers that work correctly
+    // with ES6 symbols and function objects. But this is important for Sequelize queries.
+    // This is the only solution that seams to be working.
+    return inspect(obj, { depth: Infinity, maxArrayLength: Infinity, breakLength: Infinity });
+  }
+
+  static hash(obj) {
+    return md5(SequelizeSimpleCache.stringify(obj));
   }
 
   init(model) { // Sequelize model object
@@ -30,24 +58,23 @@ class SequelizeSimpleCache {
     /* eslint-enable no-param-reassign */
     // setup caching for this model
     const config = this.config[name];
-    if (!config) return model; // no caching
-    const { ttl = 60 * 60, methods = this.methods } = config;
-    // setup Proxy for caching
-    this.debug('>>> CACHE INIT >>>', { name, config });
-    const interceptor = {
+    if (!config) return model; // no caching for this model
+    const { ttl, methods } = config;
+    this.log('init', { model: name, ttl, methods });
+    // proxy for intercepting Sequelize methods
+    return new Proxy(model, {
       get: (target, prop) => {
         if (this.disabled.has(name) || !methods.includes(prop)) {
           return target[prop];
         }
         const fn = (...args) => {
-          const key = `${name}.${prop}.${inspect(args, { depth: null })}`;
-          const hash = md5(key);
+          const hash = SequelizeSimpleCache.hash({ name, prop, args });
           const item = this.cache.get(hash);
           if (item) { // hit
             const { data, expires } = item;
             if (expires > Date.now()) {
-              this.debug('>>> CACHE RESOLVE >>>', {
-                key, hash, data: JSON.stringify(data), expires, size: this.cache.size,
+              this.log('hit', {
+                model: name, method: prop, args, hash, data, expires, size: this.cache.size,
               });
               return Promise.resolve(data); // resolve from cache
             }
@@ -61,7 +88,8 @@ class SequelizeSimpleCache {
             return Promise.resolve(data); // resolve from database
           });
         };
-        return new Proxy(fn, { // support Sinon-decorated properties
+        // proxy for supporting Sinon-decorated properties on mocked model functions
+        return new Proxy(fn, {
           get: (_, deco) => { // eslint-disable-line consistent-return
             if (Reflect.has(target, prop) && Reflect.has(target[prop], deco)) {
               return target[prop][deco]; // e.g., `User.findOne.restore`
@@ -69,8 +97,7 @@ class SequelizeSimpleCache {
           },
         });
       },
-    };
-    return new Proxy(model, interceptor);
+    });
   }
 
   clear(...modelnames) {

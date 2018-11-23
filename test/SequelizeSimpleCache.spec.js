@@ -2,6 +2,7 @@ const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
+const { Op, fn } = require('sequelize');
 const SequelizeSimpleCache = require('..');
 
 chai.use(chaiAsPromised);
@@ -33,6 +34,36 @@ describe('SequelizeSimpleCache', () => {
 
   it('should create cache without crashing / dummy model', () => {
     expect(() => new SequelizeSimpleCache({ User: {} })).to.not.throw();
+  });
+
+  it('should generate unique hashes for Sequelize queries with ES6 symbols and functions', () => {
+    const queries = [{
+      where: {
+        config: '07d54b5c-78d0-4315-9ffc-581a4afa6f6d',
+        startDate: { [Op.lte]: fn('NOW') },
+      },
+      order: [['majorVersion', 'DESC'], ['minorVersion', 'DESC'], ['patchVersion', 'DESC']],
+    }, {
+      where: {
+        config: '07d54b5c-78d0-4315-9ffc-581a4afa6f6d',
+        startDate: { [Op.lte]: fn('NOW-XXX') },
+      },
+      order: [['majorVersion', 'DESC'], ['minorVersion', 'DESC'], ['patchVersion', 'DESC']],
+    }, {
+      where: {
+        config: '07d54b5c-78d0-4315-9ffc-581a4afa6f6d',
+        startDate: {},
+      },
+      order: [['majorVersion', 'DESC'], ['minorVersion', 'DESC'], ['patchVersion', 'DESC']],
+    }];
+    const hashes = new Set();
+    const hashes2 = new Set();
+    queries.forEach(q => hashes.add(SequelizeSimpleCache.hash(q)));
+    queries.forEach(q => hashes2.add(SequelizeSimpleCache.hash(q)));
+    const union = new Set([...hashes, ...hashes2]);
+    expect(hashes.size).to.be.equal(queries.length);
+    expect(hashes2.size).to.be.equal(queries.length);
+    expect(union.size).to.be.equal(queries.length);
   });
 
   it('should create decorations on model', async () => {
@@ -287,7 +318,7 @@ describe('SequelizeSimpleCache', () => {
     expect(stubConsoleDebug.called).to.be.false;
   });
 
-  it('should work to stub models using Sinon in unit tests / option 1', async () => {
+  it('should work to stub model using Sinon in unit tests / pattern 1', async () => {
     const model = {
       name: 'User',
       findOne: async () => ({ username: 'fred' }),
@@ -303,7 +334,7 @@ describe('SequelizeSimpleCache', () => {
     stub.restore();
   });
 
-  it('should work to stub models using Sinon in unit tests / option 2', async () => {
+  it('should work to stub model using Sinon in unit tests / pattern 2', async () => {
     const model = {
       name: 'User',
       findOne: async () => ({ username: 'fred' }),
@@ -317,5 +348,17 @@ describe('SequelizeSimpleCache', () => {
     expect(result2).to.be.deep.equal({ username: 'foo' });
     expect(User.findOne.calledOnce).to.be.true;
     User.findOne.restore();
+  });
+
+  it('should throw error if model is wrongly mocked', async () => {
+    const model = {
+      name: 'User',
+      findOne: async () => ({ username: 'fred' }),
+    };
+    const cache = new SequelizeSimpleCache({ User: {} });
+    const User = cache.init(model);
+    sinon.stub(User, 'findOne').returns({ username: 'foo' }); // should be `resolves`
+    expect(() => User.findOne({ where: { username: 'foo' } }))
+      .to.throw('User.findOne() did not return a promise but should');
   });
 });
