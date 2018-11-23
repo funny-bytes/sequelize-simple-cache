@@ -4,6 +4,15 @@ This is a simple, transparent, client-side, in-memory cache for [Sequelize](http
 Cache invalidation is based on time-to-live (ttl).
 Selectively add your Sequelize models to the cache.
 
+[![Build Status](https://travis-ci.org/frankthelen/sequelize-simple-cache.svg?branch=master)](https://travis-ci.org/frankthelen/sequelize-simple-cache)
+[![Coverage Status](https://coveralls.io/repos/github/frankthelen/sequelize-simple-cache/badge.svg?branch=master)](https://coveralls.io/github/frankthelen/sequelize-simple-cache?branch=master)
+[![Dependencies Status](https://david-dm.org/frankthelen/sequelize-simple-cache.svg)](https://david-dm.org/frankthelen/sequelize-simple-cache)
+[![Greenkeeper badge](https://badges.greenkeeper.io/frankthelen/sequelize-simple-cache.svg)](https://greenkeeper.io/)
+[![Maintainability](https://api.codeclimate.com/v1/badges/c8bdb1fc29ef12070cac/maintainability)](https://codeclimate.com/github/frankthelen/sequelize-simple-cache/maintainability)
+[![node](https://img.shields.io/node/v/sequelize-simple-cache.svg)]()
+[![code style](https://img.shields.io/badge/code_style-airbnb-brightgreen.svg)](https://github.com/airbnb/javascript)
+[![License Status](http://img.shields.io/npm/l/sequelize-simple-cache.svg)]()
+
 This cache might work for you if you have a few database tables that
 (1) are frequently read but very rarely written and
 (2) contain only few rows of data.
