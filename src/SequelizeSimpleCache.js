@@ -20,7 +20,7 @@ class SequelizeSimpleCache {
     const { name } = model;
     // decorate model with interface to cache
     /* eslint-disable no-param-reassign */
-    model.cacheNo = () => model; // bypass
+    model.cacheBypass = () => model;
     model.cacheClear = () => this.clear(name);
     model.cacheClearAll = () => this.clear();
     model.cacheDisable = () => this.disable(name);

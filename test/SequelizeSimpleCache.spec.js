@@ -43,7 +43,7 @@ describe('SequelizeSimpleCache', () => {
     };
     const cache = new SequelizeSimpleCache({ User: {} });
     const User = cache.init(model);
-    expect(User).to.have.property('cacheNo').which.is.a('function');
+    expect(User).to.have.property('cacheBypass').which.is.a('function');
     expect(User).to.have.property('cacheClear').which.is.a('function');
     expect(User).to.have.property('cacheClearAll').which.is.a('function');
     expect(User).to.have.property('cacheDisable').which.is.a('function');
@@ -258,7 +258,7 @@ describe('SequelizeSimpleCache', () => {
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     const result2 = await User.findOne({ where: { username: 'fred' } });
-    const result3 = await User.cacheNo().findOne({ where: { username: 'fred' } });
+    const result3 = await User.cacheBypass().findOne({ where: { username: 'fred' } });
     expect(stub.calledTwice).to.be.true;
     expect(result1).to.be.deep.equal({ username: 'fred' });
     expect(result2).to.be.deep.equal({ username: 'fred' });

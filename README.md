@@ -3,6 +3,7 @@
 This is a simple, transparent, client-side, in-memory cache for [Sequelize](https://github.com/sequelize/sequelize) v4.
 Cache invalidation is based on time-to-live (ttl).
 Selectively add your Sequelize models to the cache.
+Works with a all storage engines supported by Sequelize.
 
 [![Build Status](https://travis-ci.org/frankthelen/sequelize-simple-cache.svg?branch=master)](https://travis-ci.org/frankthelen/sequelize-simple-cache)
 [![Coverage Status](https://coveralls.io/repos/github/frankthelen/sequelize-simple-cache/badge.svg?branch=master)](https://coveralls.io/github/frankthelen/sequelize-simple-cache?branch=master)
@@ -72,7 +73,7 @@ Model.findOne({ where: { startDate: { [Op.lte]: new Date() }, } });
 // you should do it this way
 Model.findOne({ where: { startDate: { [Op.lte]: fn('NOW') }, } });
 // if you don't want that to be cached, bypass the cache like this
-Model.cacheNo().findOne({ where: { startDate: { [Op.lte]: fn('NOW') }, } });
+Model.cacheBypass().findOne({ where: { startDate: { [Op.lte]: fn('NOW') }, } });
 ```
 
 ### Clear cache
@@ -92,7 +93,7 @@ User.cacheClearAll();
 
 Caching can explicitly be bypassed like this:
 ```javascript
-User.cacheNo().findOne(...);
+User.cacheBypass().findOne(...);
 ```
 
 ### Debug output
