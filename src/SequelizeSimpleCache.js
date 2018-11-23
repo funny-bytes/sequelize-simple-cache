@@ -53,7 +53,7 @@ class SequelizeSimpleCache {
             }
           }
           const promise = target[prop](...args);
-          assert(promise.then, `${name}.${prop} did not return a promise`);
+          assert(promise.then, `${name}.${prop}() did not return a promise but should`);
           return promise.then((data) => {
             if (data !== undefined && data !== null) {
               this.cache.set(hash, { data, expires: Date.now() + ttl * 1000, type: name });
@@ -61,8 +61,13 @@ class SequelizeSimpleCache {
             return Promise.resolve(data); // resolve from database
           });
         };
-        fn.restore = () => target[prop].restore(); // TODO: Sinon support
-        return fn;
+        return new Proxy(fn, { // support Sinon-decorated properties
+          get: (_, deco) => { // eslint-disable-line consistent-return
+            if (Reflect.has(target, prop) && Reflect.has(target[prop], deco)) {
+              return target[prop][deco]; // e.g., `User.findOne.restore`
+            }
+          },
+        });
       },
     };
     return new Proxy(model, interceptor);

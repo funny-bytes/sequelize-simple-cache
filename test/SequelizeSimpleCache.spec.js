@@ -287,7 +287,7 @@ describe('SequelizeSimpleCache', () => {
     expect(stubConsoleDebug.called).to.be.false;
   });
 
-  it('should work to stub models using Sinon in unit tests / restore variant 1', async () => {
+  it('should work to stub models using Sinon in unit tests / option 1', async () => {
     const model = {
       name: 'User',
       findOne: async () => ({ username: 'fred' }),
@@ -303,19 +303,19 @@ describe('SequelizeSimpleCache', () => {
     stub.restore();
   });
 
-  it('should work to stub models using Sinon in unit tests / restore variant 2', async () => {
+  it('should work to stub models using Sinon in unit tests / option 2', async () => {
     const model = {
       name: 'User',
       findOne: async () => ({ username: 'fred' }),
     };
     const cache = new SequelizeSimpleCache({ User: {} });
     const User = cache.init(model);
-    const stub = sinon.stub(User, 'findOne').resolves({ username: 'foo' });
+    sinon.stub(User, 'findOne').resolves({ username: 'foo' });
     const result1 = await User.findOne({ where: { username: 'foo' } });
     const result2 = await User.findOne({ where: { username: 'foo' } });
     expect(result1).to.be.deep.equal({ username: 'foo' });
     expect(result2).to.be.deep.equal({ username: 'foo' });
-    expect(stub.calledOnce).to.be.true;
+    expect(User.findOne.calledOnce).to.be.true;
     User.findOne.restore();
   });
 });
