@@ -51,9 +51,15 @@ const cache = new SequelizeSimpleCache({
 // add your models to the cache like this
 const User = cache.init(sequelize.import('./models/user'));
 const Page = cache.init(sequelize.import('./models/page'));
-const Balance = sequelize.import('./models/balance'); // no caching for this one
 
-// the model API is fully transparent, no need to change the interface.
+// no caching for this one
+const Balance = sequelize.import('./models/balance');
+
+// still no caching for this one (because it's not configured to be cached)
+// will add dummy decorators to the model for a homogeneous interface to all models
+const Order = cache.init(sequelize.import('./models/order'));
+
+// the Sequelize model API is fully transparent, no need to change anything.
 // first time resolved from database, subsequent times from local cache.
 const fred = User.findOne({ where: { username: 'fred' }});
 ```
@@ -62,7 +68,7 @@ const fred = User.findOne({ where: { username: 'fred' }});
 
 ### Supported methods
 
-Currently, the following methods on a Sequelize model instances are supported for caching:
+Currently, the following methods on Sequelize model instances are supported for caching:
 `findById`, `findOne`, `findAll`, `findAndCountAll`, `count`, `min`, `max`, `sum`.
 
 ### Non-cacheable queries / bypass caching
@@ -85,7 +91,7 @@ There are these ways to clear the cache.
 const cache = new SequelizeSimpleCache({...});
 // clear all
 cache.clear();
-// clear all entries of one specific  model
+// clear all entries of one specific model
 cache.clear('User');
 // or do the same on any model
 Model.cacheClear();
@@ -127,7 +133,7 @@ Or disable the cache right from the beginning.
 A quick idea... have a specific config value in your project's `/config/default.js`
 and `/config/test.js` to enable or disable the cache respectively.
 And start your unit tests with setting `NODE_ENV=test` before.
-This is actually the way I am doing it; plus a few extra unit tests for explicitly testing cache.
+This is actually the way I am doing it; plus a few extra unit tests for explicitly testing the cache.
 ```javascript
 const config = require('config');
 const useCache = config.get('database.cache');
