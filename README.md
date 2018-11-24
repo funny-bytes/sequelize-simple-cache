@@ -78,7 +78,7 @@ Model.findOne({ where: { startDate: { [Op.lte]: new Date() }, } });
 // you should do it this way
 Model.findOne({ where: { startDate: { [Op.lte]: fn('NOW') }, } });
 // if you don't want a query to be cached, you may explicitly bypass the cache like this
-Model.cacheBypass().findOne(...);
+Model.noCache().findOne(...);
 ```
 
 ### Clear cache
@@ -91,15 +91,15 @@ cache.clear();
 // clear all entries of specific models
 cache.clear('User', 'Page');
 // or do the same on any model
-Model.cacheClear();
-Model.cacheClearAll();
+Model.clearCache(); // only model
+Model.clearCacheAll(); // entire cache
 ```
 
 ### Bypass caching
 
 Caching can explicitly be bypassed like this:
 ```javascript
-Model.cacheBypass().findOne(...);
+Model.noCache().findOne(...);
 ```
 
 ### Debug output
@@ -121,7 +121,7 @@ So, either clear the cache as needed in your unit tests. For example (using [moc
 ```javascript
 describe('My Test Suite', () => {
   beforeEach(() => {
-    Model.cacheClearAll(); // on any model with the same effect
+    Model.clearCacheAll(); // on any model with the same effect
   });
   // ...
 ```
