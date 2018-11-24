@@ -74,11 +74,11 @@ You need to avoid non-cacheable queries, e.g., queries containing dynamic timest
 ```javascript
 const { Op, fn } = require('sequelize');
 // this is not good
-Model.findOne({ where: { startDate: { [Op.lte]: new Date() }, } });
+Model.findAll({ where: { startDate: { [Op.lte]: new Date() }, } });
 // you should do it this way
-Model.findOne({ where: { startDate: { [Op.lte]: fn('NOW') }, } });
+Model.findAll({ where: { startDate: { [Op.lte]: fn('NOW') }, } });
 // if you don't want a query to be cached, you may explicitly bypass the cache like this
-Model.noCache().findOne(...);
+Model.noCache().findAll(...);
 ```
 
 ### Clear cache
