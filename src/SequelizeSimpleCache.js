@@ -5,12 +5,12 @@ const assert = require('assert');
 
 class SequelizeSimpleCache {
   constructor(config = {}, options = {}) {
-    this.defaults = {
+    const defaults = {
       ttl: 60 * 60, // 1 hour
       methods: ['findById', 'findOne', 'findAll', 'findAndCountAll', 'count', 'min', 'max', 'sum'],
     };
     this.config = Object.entries(config)
-      .reduce((acc, [name, { ttl = this.defaults.ttl, methods = this.defaults.methods }]) => ({
+      .reduce((acc, [name, { ttl = defaults.ttl, methods = defaults.methods }]) => ({
         ...acc,
         [name]: { ttl, methods },
       }), {});
