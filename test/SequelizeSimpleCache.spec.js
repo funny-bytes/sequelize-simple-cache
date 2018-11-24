@@ -77,10 +77,6 @@ describe('SequelizeSimpleCache', () => {
     expect(User).to.have.property('cacheBypass').which.is.a('function');
     expect(User).to.have.property('cacheClear').which.is.a('function');
     expect(User).to.have.property('cacheClearAll').which.is.a('function');
-    expect(User).to.have.property('cacheDisable').which.is.a('function');
-    expect(User).to.have.property('cacheDisableAll').which.is.a('function');
-    expect(User).to.have.property('cacheEnable').which.is.a('function');
-    expect(User).to.have.property('cacheEnableAll').which.is.a('function');
   });
 
   it('should cache result and call database only once', async () => {

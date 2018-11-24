@@ -17,7 +17,6 @@ class SequelizeSimpleCache {
     const { debug = false } = options;
     this.debug = debug;
     this.cache = new Map();
-    this.disabled = new Set();
   }
 
   log(tag, details) {
@@ -51,10 +50,6 @@ class SequelizeSimpleCache {
     model.cacheBypass = () => model;
     model.cacheClear = () => this.clear(name);
     model.cacheClearAll = () => this.clear();
-    model.cacheDisable = () => this.disable(name);
-    model.cacheDisableAll = () => this.disable();
-    model.cacheEnable = () => this.enable(name);
-    model.cacheEnableAll = () => this.enable();
     /* eslint-enable no-param-reassign */
     // setup caching for this model
     const config = this.config[name];
@@ -64,7 +59,7 @@ class SequelizeSimpleCache {
     // proxy for intercepting Sequelize methods
     return new Proxy(model, {
       get: (target, prop) => {
-        if (this.disabled.has(name) || !methods.includes(prop)) {
+        if (!methods.includes(prop)) {
           return target[prop];
         }
         const fn = (...args) => {
@@ -110,16 +105,6 @@ class SequelizeSimpleCache {
         this.cache.delete(key);
       }
     });
-  }
-
-  disable(...modelnames) {
-    const names = modelnames.length ? modelnames : Object.keys(this.config);
-    names.forEach(name => this.disabled.add(name));
-  }
-
-  enable(...modelnames) {
-    const names = modelnames.length ? modelnames : Object.keys(this.config);
-    names.forEach(name => this.disabled.delete(name));
   }
 }
 

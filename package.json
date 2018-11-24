@@ -11,8 +11,10 @@
   },
   "keywords": [
     "Sequelize",
+    "transparent",
     "cache",
-    "transparent"
+    "client-side",
+    "in-memory"
   ],
   "scripts": {
     "lint": "eslint . --ignore-path ./.eslintignore",
