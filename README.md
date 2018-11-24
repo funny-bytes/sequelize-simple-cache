@@ -14,7 +14,7 @@ Works with all storage engines supported by Sequelize.
 [![code style](https://img.shields.io/badge/code_style-airbnb-brightgreen.svg)](https://github.com/airbnb/javascript)
 [![License Status](http://img.shields.io/npm/l/sequelize-simple-cache.svg)]()
 
-This cache might work for you if you have a few database tables that
+This cache might work for you if you have database tables that
 (1) are frequently read but very rarely written and
 (2) contain only few rows of data.
 
@@ -22,10 +22,10 @@ In a project, we had a couple of database tables that were holding a sort of sys
 Something like 4 or 5 tables with some 50 rows of data.
 Nearly every request needed this data, i.e., it was read all the time.
 But updated only very rarely, once a day maybe.
-So, pre-fetching or simple caching would work for us.
+So, pre-fetching or simple in-memory caching would work for us.
 
 If that's not matching your scenario,
-better look for something more sophisticated such as Redis, memcached and alike.
+better look for something more sophisticated such as Redis or Memcached.
 
 ## Install
 
@@ -52,11 +52,8 @@ const cache = new SequelizeSimpleCache({
 const User = cache.init(sequelize.import('./models/user'));
 const Page = cache.init(sequelize.import('./models/page'));
 
-// no caching for this one
-const Balance = sequelize.import('./models/balance');
-
-// still no caching for this one (because it's not configured to be cached)
-// will add dummy decorators to the model for a homogeneous interface to all models
+// no caching for this one (because it's not configured to be cached)
+// will only add dummy decorators to the model for a homogeneous interface to all models
 const Order = cache.init(sequelize.import('./models/order'));
 
 // the Sequelize model API is fully transparent, no need to change anything.
@@ -80,8 +77,8 @@ const { Op, fn } = require('sequelize');
 Model.findOne({ where: { startDate: { [Op.lte]: new Date() }, } });
 // you should do it this way
 Model.findOne({ where: { startDate: { [Op.lte]: fn('NOW') }, } });
-// if you don't want a query to be cached, bypass the cache like this
-Model.cacheBypass().findOne({ where: { startDate: { [Op.lte]: fn('NOW') }, } });
+// if you don't want a query to be cached, you may explicitly bypass the cache like this
+Model.cacheBypass().findOne(...);
 ```
 
 ### Clear cache
@@ -91,8 +88,8 @@ There are these ways to clear the cache.
 const cache = new SequelizeSimpleCache({...});
 // clear all
 cache.clear();
-// clear all entries of one specific model
-cache.clear('User');
+// clear all entries of specific models
+cache.clear('User', 'Page');
 // or do the same on any model
 Model.cacheClear();
 Model.cacheClearAll();
@@ -116,9 +113,9 @@ const cache = new SequelizeSimpleCache({
 });
 ```
 
-### Unit testing your models
+### Unit testing
 
-If you are unit testing your Sequelize models using [Sinon](https://sinonjs.org/) et al.,
+If you are mocking your Sequelize models in unit tests with [Sinon](https://sinonjs.org/) et al.,
 caching might be somewhat counterproductive.
 So, either clear the cache as needed in your unit tests. For example (using [mocha](https://mochajs.org/)):
 ```javascript
@@ -133,7 +130,7 @@ Or disable the cache right from the beginning.
 A quick idea... have a specific config value in your project's `/config/default.js`
 and `/config/test.js` to enable or disable the cache respectively.
 And start your unit tests with setting `NODE_ENV=test` before.
-This is actually the way I am doing it; plus a few extra unit tests for explicitly testing the cache.
+This is actually the way I am doing it; plus a few extra unit tests for caching.
 ```javascript
 const config = require('config');
 const useCache = config.get('database.cache');
