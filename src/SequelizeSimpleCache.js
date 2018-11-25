@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const md5 = require('md5');
 const { inspect } = require('util');
 const assert = require('assert');
@@ -62,7 +61,7 @@ class SequelizeSimpleCache {
         if (!methods.includes(prop)) {
           return target[prop];
         }
-        const fn = (...args) => {
+        const fn = async (...args) => {
           const hash = SequelizeSimpleCache.hash({ name, prop, args });
           const item = this.cache.get(hash);
           if (item) { // hit
@@ -71,7 +70,7 @@ class SequelizeSimpleCache {
               this.log('hit', {
                 model: name, method: prop, args, hash, data, expires, size: this.cache.size,
               });
-              return Promise.resolve(data); // resolve from cache
+              return data; // resolve from cache
             }
           }
           const promise = target[prop](...args);
@@ -80,7 +79,7 @@ class SequelizeSimpleCache {
             if (data !== undefined && data !== null) {
               this.cache.set(hash, { data, expires: Date.now() + ttl * 1000, type: name });
             }
-            return Promise.resolve(data); // resolve from database
+            return data; // resolve from database
           });
         };
         // proxy for supporting Sinon-decorated properties on mocked model functions

@@ -354,7 +354,7 @@ describe('SequelizeSimpleCache', () => {
     const cache = new SequelizeSimpleCache({ User: {} });
     const User = cache.init(model);
     sinon.stub(User, 'findOne').returns({ username: 'foo' }); // should be `resolves`
-    expect(() => User.findOne({ where: { username: 'foo' } }))
-      .to.throw('User.findOne() did not return a promise but should');
+    User.findOne({ where: { username: 'foo' } })
+      .should.be.rejectedWith(Error, 'User.findOne() did not return a promise but should');
   });
 });
