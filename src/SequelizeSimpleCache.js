@@ -9,26 +9,14 @@ class SequelizeSimpleCache {
       methods: ['findById', 'findOne', 'findAll', 'findAndCountAll', 'count', 'min', 'max', 'sum'],
     };
     this.config = Object.entries(config)
-      .reduce((acc, [name, { ttl = defaults.ttl, methods = defaults.methods }]) => ({
+      .reduce((acc, [type, { ttl = defaults.ttl, methods = defaults.methods }]) => ({
         ...acc,
-        [name]: { ttl, methods },
+        [type]: { ttl, methods },
       }), {});
     const { debug = false } = options;
     this.debug = debug;
     this.cache = new Map();
-  }
-
-  log(tag, details) {
-    if (!this.debug) return;
-    const { args, data } = details;
-    const out = details;
-    if (args) {
-      out.args = SequelizeSimpleCache.stringify(args);
-    }
-    if (data) {
-      out.data = JSON.stringify(data);
-    }
-    console.debug(`>>> CACHE ${tag.toUpperCase()} >>>`, out); // eslint-disable-line no-console
+    this.stats = { hit: 0, miss: 0, load: 0 };
   }
 
   static stringify(obj) {
@@ -43,18 +31,18 @@ class SequelizeSimpleCache {
   }
 
   init(model) { // Sequelize model object
-    const { name } = model;
+    const { name: type } = model;
     // decorate model with interface to cache
     /* eslint-disable no-param-reassign */
     model.noCache = () => model;
-    model.clearCache = () => this.clear(name);
+    model.clearCache = () => this.clear(type);
     model.clearCacheAll = () => this.clear();
     /* eslint-enable no-param-reassign */
     // setup caching for this model
-    const config = this.config[name];
+    const config = this.config[type];
     if (!config) return model; // no caching for this model
     const { ttl, methods } = config;
-    this.log('init', { model: name, ttl, methods });
+    this.log('init', { type, ttl, methods });
     // proxy for intercepting Sequelize methods
     return new Proxy(model, {
       get: (target, prop) => {
@@ -62,22 +50,29 @@ class SequelizeSimpleCache {
           return target[prop];
         }
         const fn = async (...args) => {
-          const hash = SequelizeSimpleCache.hash({ name, prop, args });
+          const hash = SequelizeSimpleCache.hash({ type, prop, args });
           const item = this.cache.get(hash);
           if (item) { // hit
             const { data, expires } = item;
             if (expires > Date.now()) {
               this.log('hit', {
-                model: name, method: prop, args, hash, data, expires, size: this.cache.size,
+                type, method: prop, args, hash, data, expires,
               });
               return data; // resolve from cache
             }
           }
+          this.log('miss', {
+            type, method: prop, args, hash,
+          });
           const promise = target[prop](...args);
-          assert(promise.then, `${name}.${prop}() did not return a promise but should`);
+          assert(promise.then, `${type}.${prop}() did not return a promise but should`);
           return promise.then((data) => {
             if (data !== undefined && data !== null) {
-              this.cache.set(hash, { data, expires: Date.now() + ttl * 1000, type: name });
+              const expires = Date.now() + ttl * 1000;
+              this.cache.set(hash, { data, expires, type });
+              this.log('load', {
+                type, method: prop, args, hash, data, expires,
+              });
             }
             return data; // resolve from database
           });
@@ -104,6 +99,26 @@ class SequelizeSimpleCache {
         this.cache.delete(key);
       }
     });
+  }
+
+  log(tag, details) {
+    // stats
+    if (['hit', 'miss', 'load'].includes(tag)) {
+      this.stats[tag] += 1;
+    }
+    // debug logging
+    if (!this.debug) return;
+    const { args, data } = details;
+    const out = details;
+    if (args) {
+      out.args = SequelizeSimpleCache.stringify(args);
+    }
+    if (data) {
+      out.data = JSON.stringify(data);
+    }
+    out.stats = { ...this.stats, ratio: this.stats.hit / (this.stats.hit + this.stats.miss) };
+    out.size = this.cache.size;
+    console.debug(`>>> CACHE ${tag.toUpperCase()} >>>`, out); // eslint-disable-line no-console
   }
 }
 
