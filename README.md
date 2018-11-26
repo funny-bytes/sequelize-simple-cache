@@ -102,14 +102,18 @@ Caching can explicitly be bypassed like this:
 Model.noCache().findOne(...);
 ```
 
-### Debug output
+### Logging
 
-You can activate debug output to `console.debug()` like this:
+There is "debug" and "ops" logging -- both are off by default.
+Logging goes to `console.debug()` unless you set `delegate` to log somewhere else.
+`event` is one of: `init`, `hit`, `miss`, `load` or `ops`.
 ```javascript
 const cache = new SequelizeSimpleCache({
   // ...
 }, {
   debug: true,
+  ops: 60, // seconds
+  delegate: (event, details) => { ... },
 });
 ```
 

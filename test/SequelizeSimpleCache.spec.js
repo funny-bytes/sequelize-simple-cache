@@ -26,15 +26,15 @@ describe('SequelizeSimpleCache', () => {
   });
 
   it('should create cache without crashing / no args', () => {
-    expect(() => new SequelizeSimpleCache()).to.not.throw();
+    expect(() => new SequelizeSimpleCache({}, { ops: false })).to.not.throw();
   });
 
   it('should create cache without crashing / empty args', () => {
-    expect(() => new SequelizeSimpleCache({})).to.not.throw();
+    expect(() => new SequelizeSimpleCache({}, { ops: false })).to.not.throw();
   });
 
   it('should create cache without crashing / dummy model', () => {
-    expect(() => new SequelizeSimpleCache({ User: {} })).to.not.throw();
+    expect(() => new SequelizeSimpleCache({ User: {} }, { ops: false })).to.not.throw();
   });
 
   it('should generate unique hashes for Sequelize queries with ES6 symbols and functions', () => {
@@ -73,7 +73,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
     expect(User).to.have.property('noCache').which.is.a('function');
     expect(User).to.have.property('clearCache').which.is.a('function');
@@ -86,7 +86,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     const result2 = await User.findOne({ where: { username: 'fred' } });
@@ -101,7 +101,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     cache.clear();
@@ -121,7 +121,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'Page',
       findOne: sinon.stub().resolves({ foo: true }),
     };
-    const cache = new SequelizeSimpleCache({ User: {}, Page: {} });
+    const cache = new SequelizeSimpleCache({ User: {}, Page: {} }, { ops: false });
     const User = cache.init(model);
     const Page = cache.init(model2);
     const result1 = await User.findOne({ where: { username: 'fred' } });
@@ -139,7 +139,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     User.clearCache();
@@ -155,7 +155,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     User.clearCacheAll();
@@ -171,11 +171,11 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: { ttl: 1 } });
+    const cache = new SequelizeSimpleCache({ User: { ttl: 1 } }, { ops: false });
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     const result2 = await User.findOne({ where: { username: 'fred' } });
-    await new Promise(resolve => setTimeout(() => resolve(), 1000));
+    await new Promise(resolve => setTimeout(() => resolve(), 1200));
     const result3 = await User.findOne({ where: { username: 'fred' } });
     expect(stub.calledTwice).to.be.true;
     expect(result1).to.be.deep.equal({ username: 'fred' });
@@ -189,7 +189,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     const result2 = await User.findOne({ where: { username: 'fred' } });
@@ -204,7 +204,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     const result2 = await User.findOne({ where: { username: 'fred' } });
@@ -219,7 +219,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findFoo: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: { methods: ['findFoo'] } });
+    const cache = new SequelizeSimpleCache({ User: { methods: ['findFoo'] } }, { ops: false });
     const User = cache.init(model);
     const result1 = await User.findFoo({ where: { username: 'fred' } });
     const result2 = await User.findFoo({ where: { username: 'fred' } });
@@ -235,7 +235,7 @@ describe('SequelizeSimpleCache', () => {
       findOne: stub,
       findFoo: async () => {},
     };
-    const cache = new SequelizeSimpleCache({ User: { methods: ['findFoo'] } });
+    const cache = new SequelizeSimpleCache({ User: { methods: ['findFoo'] } }, { ops: false });
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     const result2 = await User.findOne({ where: { username: 'fred' } });
@@ -250,7 +250,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
     try {
       await User.findOne({ where: { username: 'fred' } });
@@ -267,7 +267,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ Foo: {} });
+    const cache = new SequelizeSimpleCache({ Foo: {} }, { ops: false });
     const User = cache.init(model); // TODO: should this issue a warning?
     const result1 = await User.findOne({ where: { username: 'fred' } });
     const result2 = await User.findOne({ where: { username: 'fred' } });
@@ -282,7 +282,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     const result2 = await User.findOne({ where: { username: 'fred' } });
@@ -299,7 +299,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: {} }, { debug: true });
+    const cache = new SequelizeSimpleCache({ User: {} }, { debug: true, ops: false });
     cache.init(model);
     expect(stubConsoleDebug.called).to.be.true;
   });
@@ -310,7 +310,31 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
+    cache.init(model);
+    expect(stubConsoleDebug.called).to.be.false;
+  });
+
+  it('should print ops output if ops>0', async () => {
+    const stub = sinon.stub().resolves({ username: 'fred' });
+    const model = {
+      name: 'User',
+      findOne: stub,
+    };
+    const cache = new SequelizeSimpleCache({ User: {} }, { debug: false, ops: 1 });
+    cache.init(model);
+    await new Promise(resolve => setTimeout(() => resolve(), 1200));
+    clearInterval(cache.heart);
+    expect(stubConsoleDebug.called).to.be.true;
+  });
+
+  it('should not print ops output if ops=false', async () => {
+    const stub = sinon.stub().resolves({ username: 'fred' });
+    const model = {
+      name: 'User',
+      findOne: stub,
+    };
+    const cache = new SequelizeSimpleCache({ User: {} }, { debug: false, ops: false });
     cache.init(model);
     expect(stubConsoleDebug.called).to.be.false;
   });
@@ -320,7 +344,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: async () => ({ username: 'fred' }),
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
     const stub = sinon.stub(User, 'findOne').resolves({ username: 'foo' });
     const result1 = await User.findOne({ where: { username: 'foo' } });
@@ -336,7 +360,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: async () => ({ username: 'fred' }),
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
     sinon.stub(User, 'findOne').resolves({ username: 'foo' });
     const result1 = await User.findOne({ where: { username: 'foo' } });
@@ -352,7 +376,7 @@ describe('SequelizeSimpleCache', () => {
       name: 'User',
       findOne: async () => ({ username: 'fred' }),
     };
-    const cache = new SequelizeSimpleCache({ User: {} });
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
     sinon.stub(User, 'findOne').returns({ username: 'foo' }); // should be `resolves`
     User.findOne({ where: { username: 'foo' } })
