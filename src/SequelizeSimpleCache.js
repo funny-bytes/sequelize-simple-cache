@@ -13,8 +13,12 @@ class SequelizeSimpleCache {
         ...acc,
         [type]: { ttl, methods },
       }), {});
-    const { debug = false } = options;
+    const {
+      debug = false, // eslint-disable-next-line no-console
+      delegate = (event, details) => console.debug(`CACHE ${event.toUpperCase()}`, details),
+    } = options;
     this.debug = debug;
+    this.delegate = delegate;
     this.cache = new Map();
     this.stats = { hit: 0, miss: 0, load: 0 };
   }
@@ -101,10 +105,10 @@ class SequelizeSimpleCache {
     });
   }
 
-  log(tag, details) {
+  log(event, details) {
     // stats
-    if (['hit', 'miss', 'load'].includes(tag)) {
-      this.stats[tag] += 1;
+    if (['hit', 'miss', 'load'].includes(event)) {
+      this.stats[event] += 1;
     }
     // debug logging
     if (!this.debug) return;
@@ -118,7 +122,7 @@ class SequelizeSimpleCache {
     }
     out.stats = { ...this.stats, ratio: this.stats.hit / (this.stats.hit + this.stats.miss) };
     out.size = this.cache.size;
-    console.debug(`>>> CACHE ${tag.toUpperCase()} >>>`, out); // eslint-disable-line no-console
+    this.delegate(event, out);
   }
 }
 
