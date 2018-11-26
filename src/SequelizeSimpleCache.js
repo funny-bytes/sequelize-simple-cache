@@ -23,15 +23,11 @@ class SequelizeSimpleCache {
     this.stats = { hit: 0, miss: 0, load: 0 };
   }
 
-  static stringify(obj) {
+  static key(obj) {
     // Unfortunately, there seam to be no stringifyers or object hashers that work correctly
     // with ES6 symbols and function objects. But this is important for Sequelize queries.
     // This is the only solution that seams to be working.
     return inspect(obj, { depth: Infinity, maxArrayLength: Infinity, breakLength: Infinity });
-  }
-
-  static hash(obj) {
-    return md5(SequelizeSimpleCache.stringify(obj));
   }
 
   init(model) { // Sequelize model object
@@ -54,29 +50,24 @@ class SequelizeSimpleCache {
           return target[prop];
         }
         const fn = async (...args) => {
-          const hash = SequelizeSimpleCache.hash({ type, prop, args });
+          const key = SequelizeSimpleCache.key({ type, prop, args });
+          const hash = md5(key);
           const item = this.cache.get(hash);
           if (item) { // hit
             const { data, expires } = item;
             if (expires > Date.now()) {
-              this.log('hit', {
-                type, method: prop, args, hash, data, expires,
-              });
+              this.log('hit', { key, hash, expires });
               return data; // resolve from cache
             }
           }
-          this.log('miss', {
-            type, method: prop, args, hash,
-          });
+          this.log('miss', { key, hash });
           const promise = target[prop](...args);
           assert(promise.then, `${type}.${prop}() did not return a promise but should`);
           return promise.then((data) => {
             if (data !== undefined && data !== null) {
               const expires = Date.now() + ttl * 1000;
               this.cache.set(hash, { data, expires, type });
-              this.log('load', {
-                type, method: prop, args, hash, data, expires,
-              });
+              this.log('load', { key, hash, expires });
             }
             return data; // resolve from database
           });
@@ -112,16 +103,14 @@ class SequelizeSimpleCache {
     }
     // debug logging
     if (!this.debug) return;
-    const { args, data } = details;
-    const out = details;
-    if (args) {
-      out.args = SequelizeSimpleCache.stringify(args);
-    }
-    if (data) {
-      out.data = JSON.stringify(data);
-    }
-    out.stats = { ...this.stats, ratio: this.stats.hit / (this.stats.hit + this.stats.miss) };
-    out.size = this.cache.size;
+    const out = {
+      ...details,
+      stats: {
+        ...this.stats,
+        ratio: this.stats.hit / (this.stats.hit + this.stats.miss),
+      },
+      size: this.cache.size,
+    };
     this.delegate(event, out);
   }
 }

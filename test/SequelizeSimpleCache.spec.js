@@ -3,6 +3,7 @@ const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 const { Op, fn } = require('sequelize');
+const md5 = require('md5');
 const SequelizeSimpleCache = require('..');
 
 chai.use(chaiAsPromised);
@@ -58,8 +59,8 @@ describe('SequelizeSimpleCache', () => {
     }];
     const hashes = new Set();
     const hashes2 = new Set();
-    queries.forEach(q => hashes.add(SequelizeSimpleCache.hash(q)));
-    queries.forEach(q => hashes2.add(SequelizeSimpleCache.hash(q)));
+    queries.forEach(q => hashes.add(md5(SequelizeSimpleCache.key(q))));
+    queries.forEach(q => hashes2.add(md5(SequelizeSimpleCache.key(q))));
     const union = new Set([...hashes, ...hashes2]);
     expect(hashes.size).to.be.equal(queries.length);
     expect(hashes2.size).to.be.equal(queries.length);
