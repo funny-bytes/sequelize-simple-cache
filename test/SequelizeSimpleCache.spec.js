@@ -126,11 +126,11 @@ describe('SequelizeSimpleCache', () => {
     const Page = cache.init(model2);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     const result2 = await Page.findOne({ where: { foo: true } });
-    expect(cache.cache.size).to.be.equal(2);
+    expect(cache.size()).to.be.equal(2);
     cache.clear('User');
     expect(result1).to.be.deep.equal({ username: 'fred' });
     expect(result2).to.be.deep.equal({ foo: true });
-    expect(cache.cache.size).to.be.equal(1);
+    expect(cache.size()).to.be.equal(1);
   });
 
   it('should cache result and clear cache by model (via model)', async () => {
@@ -381,5 +381,23 @@ describe('SequelizeSimpleCache', () => {
     sinon.stub(User, 'findOne').returns({ username: 'foo' }); // should be `resolves`
     User.findOne({ where: { username: 'foo' } })
       .should.be.rejectedWith(Error, 'User.findOne() did not return a promise but should');
+  });
+
+  it('should ensure limit is not exceeded', async () => {
+    const model = {
+      name: 'User',
+      findOne: async () => ({ username: 'fred' }),
+    };
+    const cache = new SequelizeSimpleCache({ User: { limit: 3 } }, { ops: false });
+    const User = cache.init(model);
+    await User.findOne({ where: { username: 'john' } });
+    await new Promise(resolve => setTimeout(() => resolve(), 16));
+    await User.findOne({ where: { username: 'jim' } });
+    await new Promise(resolve => setTimeout(() => resolve(), 16));
+    await User.findOne({ where: { username: 'bob' } });
+    await new Promise(resolve => setTimeout(() => resolve(), 16));
+    expect(cache.size()).to.be.equal(3);
+    await User.findOne({ where: { username: 'ron' } });
+    expect(cache.size()).to.be.equal(3);
   });
 });

@@ -7,11 +7,16 @@ class SequelizeSimpleCache {
     const defaults = {
       ttl: 60 * 60, // 1 hour
       methods: ['findById', 'findOne', 'findAll', 'findAndCountAll', 'count', 'min', 'max', 'sum'],
+      limit: 50,
     };
     this.config = Object.entries(config)
-      .reduce((acc, [type, { ttl = defaults.ttl, methods = defaults.methods }]) => ({
+      .reduce((acc, [type, {
+        ttl = defaults.ttl,
+        methods = defaults.methods,
+        limit = defaults.limit,
+      }]) => ({
         ...acc,
-        [type]: { ttl, methods },
+        [type]: { ttl, methods, limit },
       }), {});
     const {
       debug = false,
@@ -21,8 +26,10 @@ class SequelizeSimpleCache {
     this.debug = debug;
     this.ops = ops;
     this.delegate = delegate;
-    this.cache = new Map();
-    this.stats = { hit: 0, miss: 0, load: 0 };
+    this.cache = {};
+    this.stats = {
+      hit: 0, miss: 0, load: 0, purge: 0,
+    };
     if (this.ops > 0) {
       this.heart = setInterval(() => {
         this.log('ops');
@@ -48,8 +55,13 @@ class SequelizeSimpleCache {
     // setup caching for this model
     const config = this.config[type];
     if (!config) return model; // no caching for this model
-    const { ttl, methods } = config;
-    this.log('init', { type, ttl, methods });
+    const { ttl, methods, limit } = config;
+    // create map for model
+    const cache = new Map();
+    this.cache[type] = cache;
+    this.log('init', {
+      type, ttl, methods, limit,
+    });
     // proxy for intercepting Sequelize methods
     return new Proxy(model, {
       get: (target, prop) => {
@@ -59,7 +71,7 @@ class SequelizeSimpleCache {
         const fn = async (...args) => {
           const key = SequelizeSimpleCache.key({ type, prop, args });
           const hash = md5(key);
-          const item = this.cache.get(hash);
+          const item = cache.get(hash);
           if (item) { // hit
             const { data, expires } = item;
             if (expires > Date.now()) {
@@ -73,8 +85,16 @@ class SequelizeSimpleCache {
           return promise.then((data) => {
             if (data !== undefined && data !== null) {
               const expires = Date.now() + ttl * 1000;
-              this.cache.set(hash, { data, expires, type });
+              cache.set(hash, { data, expires });
               this.log('load', { key, hash, expires });
+              if (cache.size > limit) { // check cache limit
+                let oldest = {};
+                cache.forEach(({ expires: e }, h) => {
+                  if (!oldest.h || e < oldest.e) oldest = { h, e };
+                });
+                cache.delete(oldest.h);
+                this.log('purge', { hash: oldest.h, expires: oldest.e });
+              }
             }
             return data; // resolve from database
           });
@@ -92,29 +112,34 @@ class SequelizeSimpleCache {
   }
 
   clear(...modelnames) {
-    if (!modelnames.length) {
-      this.cache.clear();
-      return;
-    }
-    this.cache.forEach(({ type }, key) => {
-      if (modelnames.includes(type)) {
-        this.cache.delete(key);
-      }
+    const types = modelnames.length ? modelnames : Object.keys(this.cache);
+    types.forEach((type) => {
+      const cache = this.cache[type];
+      if (!cache) return;
+      cache.clear();
     });
+  }
+
+  size(...modelnames) {
+    const types = modelnames.length ? modelnames : Object.keys(this.cache);
+    return types
+      .filter(type => this.cache[type])
+      .reduce((acc, type) => acc + this.cache[type].size, 0);
   }
 
   log(event, details = {}) {
     // stats
-    if (['hit', 'miss', 'load'].includes(event)) {
+    if (['hit', 'miss', 'load', 'purge'].includes(event)) {
       this.stats[event] += 1;
     }
     // logging
-    if (!this.debug && ['init', 'hit', 'miss', 'load'].includes(event)) return;
+    if (!this.debug && ['init', 'hit', 'miss', 'load', 'purge'].includes(event)) return;
     this.delegate(event, {
       ...details,
       ...this.stats,
       ratio: this.stats.hit / (this.stats.hit + this.stats.miss),
-      size: this.cache.size,
+      size: Object.entries(this.cache)
+        .reduce((acc, [type, map]) => ({ ...acc, [type]: map.size }), {}),
     });
   }
 }

@@ -102,11 +102,22 @@ Caching can explicitly be bypassed like this:
 Model.noCache().findOne(...);
 ```
 
+### Limit
+
+This cache meant as a simple in-memory read cache for a very limited amount of data.
+So, you should be able to control the size of the cache.
+```javascript
+const cache = new SequelizeSimpleCache({
+  User: { }, // default limit is 50
+  Page: { limit: 30 },
+});
+```
+
 ### Logging
 
 There is "debug" and "ops" logging -- both are off by default.
 Logging goes to `console.debug()` unless you set `delegate` to log somewhere else.
-`event` is one of: `init`, `hit`, `miss`, `load` or `ops`.
+`event` is one of: `init`, `hit`, `miss`, `load`, `purge` or `ops`.
 ```javascript
 const cache = new SequelizeSimpleCache({
   // ...
