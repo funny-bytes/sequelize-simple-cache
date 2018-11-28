@@ -104,7 +104,7 @@ Model.noCache().findOne(...);
 
 ### Limit
 
-This cache meant as a simple in-memory read cache for a very limited amount of data.
+This cache is meant as a simple in-memory read cache for a very limited amount of data.
 So, you should be able to control the size of the cache.
 ```javascript
 const cache = new SequelizeSimpleCache({
