@@ -88,12 +88,7 @@ class SequelizeSimpleCache {
               cache.set(hash, { data, expires });
               this.log('load', { key, hash, expires });
               if (cache.size > limit) {
-                let oldest = {};
-                cache.forEach(({ expires: e }, h) => {
-                  if (!oldest.h || e < oldest.e) oldest = { h, e };
-                });
-                cache.delete(oldest.h);
-                this.log('purge', { hash: oldest.h, expires: oldest.e });
+                this.purge(type);
               }
             }
             return data; // resolve from database
@@ -127,9 +122,32 @@ class SequelizeSimpleCache {
       .reduce((acc, type) => acc + this.cache[type].size, 0);
   }
 
+  purge(...modelnames) {
+    const types = modelnames.length ? modelnames : Object.keys(this.cache);
+    const now = Date.now();
+    types.forEach((type) => {
+      const cache = this.cache[type];
+      if (!cache) return;
+      let oldest;
+      cache.forEach(({ expires }, hash) => {
+        if (expires <= now) {
+          cache.delete(hash);
+          this.log('purge', { hash, expires });
+        } else if (!oldest || expires < oldest.expires) {
+          oldest = { hash, expires };
+        }
+      });
+      const { limit } = this.config[type];
+      if (cache.size > limit && oldest) {
+        cache.delete(oldest.hash);
+        this.log('purge', oldest);
+      }
+    });
+  }
+
   log(event, details = {}) {
     // stats
-    if (['hit', 'miss', 'load', 'purge'].includes(event)) {
+    if (this.stats[event] >= 0) {
       this.stats[event] += 1;
     }
     // logging
