@@ -26,10 +26,14 @@ describe('SequelizeSimpleCache', () => {
   });
 
   it('should create cache without crashing / no args', () => {
-    expect(() => new SequelizeSimpleCache({}, { ops: false })).to.not.throw();
+    expect(() => new SequelizeSimpleCache()).to.not.throw();
   });
 
-  it('should create cache without crashing / empty args', () => {
+  it('should create cache without crashing / empty args / 1', () => {
+    expect(() => new SequelizeSimpleCache({}, {})).to.not.throw();
+  });
+
+  it('should create cache without crashing / empty args / 2', () => {
     expect(() => new SequelizeSimpleCache({}, { ops: false })).to.not.throw();
   });
 
@@ -131,6 +135,28 @@ describe('SequelizeSimpleCache', () => {
     expect(result1).to.be.deep.equal({ username: 'fred' });
     expect(result2).to.be.deep.equal({ foo: true });
     expect(cache.size()).to.be.equal(1);
+  });
+
+  it('should cache result and clear cache by model (via cache) / unknown model name', async () => {
+    const stub = sinon.stub().resolves({ username: 'fred' });
+    const model = {
+      name: 'User',
+      findOne: stub,
+    };
+    const model2 = {
+      name: 'Page',
+      findOne: sinon.stub().resolves({ foo: true }),
+    };
+    const cache = new SequelizeSimpleCache({ User: {}, Page: {} }, { ops: false });
+    const User = cache.init(model);
+    const Page = cache.init(model2);
+    const result1 = await User.findOne({ where: { username: 'fred' } });
+    const result2 = await Page.findOne({ where: { foo: true } });
+    expect(cache.size()).to.be.equal(2);
+    cache.clear('Foo');
+    expect(result1).to.be.deep.equal({ username: 'fred' });
+    expect(result2).to.be.deep.equal({ foo: true });
+    expect(cache.size()).to.be.equal(2);
   });
 
   it('should cache result and clear cache by model (via model)', async () => {

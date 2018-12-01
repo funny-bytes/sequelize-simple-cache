@@ -20,7 +20,7 @@ class SequelizeSimpleCache {
       }), {});
     const {
       debug = false,
-      ops = false, // eslint-disable-next-line no-console
+      ops = 0, // eslint-disable-next-line no-console
       delegate = (event, details) => console.debug(`CACHE ${event.toUpperCase()}`, details),
     } = options;
     this.debug = debug;
@@ -87,7 +87,7 @@ class SequelizeSimpleCache {
               const expires = Date.now() + ttl * 1000;
               cache.set(hash, { data, expires });
               this.log('load', { key, hash, expires });
-              if (cache.size > limit) { // check cache limit
+              if (cache.size > limit) {
                 let oldest = {};
                 cache.forEach(({ expires: e }, h) => {
                   if (!oldest.h || e < oldest.e) oldest = { h, e };
@@ -133,7 +133,7 @@ class SequelizeSimpleCache {
       this.stats[event] += 1;
     }
     // logging
-    if (!this.debug && ['init', 'hit', 'miss', 'load', 'purge'].includes(event)) return;
+    if (!this.debug && event !== 'ops') return;
     this.delegate(event, {
       ...details,
       ...this.stats,
