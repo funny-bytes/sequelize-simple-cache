@@ -71,7 +71,7 @@ describe('SequelizeSimpleCache', () => {
     expect(union.size).to.be.equal(queries.length);
   });
 
-  it('should create decorations on model', async () => {
+  it('should create decorations on model / cached', async () => {
     const stub = sinon.stub().resolves({ username: 'fred' });
     const model = {
       name: 'User',
@@ -79,9 +79,22 @@ describe('SequelizeSimpleCache', () => {
     };
     const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
     const User = cache.init(model);
-    expect(User).to.have.property('noCache').which.is.a('function');
-    expect(User).to.have.property('clearCache').which.is.a('function');
-    expect(User).to.have.property('clearCacheAll').which.is.a('function');
+    expect(User.noCache).to.be.a('function');
+    expect(User.clearCache).to.be.a('function');
+    expect(User.clearCacheAll).to.be.a('function');
+  });
+
+  it('should create decorations on model / not cached', async () => {
+    const stub = sinon.stub().resolves({ username: 'fred' });
+    const model = {
+      name: 'User',
+      findOne: stub,
+    };
+    const cache = new SequelizeSimpleCache({ }, { ops: false });
+    const User = cache.init(model);
+    expect(User.noCache).to.be.a('function');
+    expect(User.clearCache).to.be.a('function');
+    expect(User.clearCacheAll).to.be.a('function');
   });
 
   it('should cache result and call database only once', async () => {
@@ -302,7 +315,7 @@ describe('SequelizeSimpleCache', () => {
     expect(result2).to.be.deep.equal({ username: 'fred' });
   });
 
-  it('should bypass cache on model (via model decoration', async () => {
+  it('should bypass cache on model (via model decoration)', async () => {
     const stub = sinon.stub().resolves({ username: 'fred' });
     const model = {
       name: 'User',
@@ -317,6 +330,32 @@ describe('SequelizeSimpleCache', () => {
     expect(result1).to.be.deep.equal({ username: 'fred' });
     expect(result2).to.be.deep.equal({ username: 'fred' });
     expect(result3).to.be.deep.equal({ username: 'fred' });
+  });
+
+  it('should bypass unknown function / cached', async () => {
+    const stub = sinon.stub().resolves({ foo: true });
+    const model = {
+      name: 'User',
+      foo: stub,
+    };
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
+    const User = cache.init(model);
+    const result = await User.foo();
+    expect(stub.calledOnce).to.be.true;
+    expect(result).to.be.deep.equal({ foo: true });
+  });
+
+  it('should bypass unknown function / not cached', async () => {
+    const stub = sinon.stub().resolves({ foo: true });
+    const model = {
+      name: 'User',
+      foo: stub,
+    };
+    const cache = new SequelizeSimpleCache({ }, { ops: false });
+    const User = cache.init(model);
+    const result = await User.foo();
+    expect(stub.calledOnce).to.be.true;
+    expect(result).to.be.deep.equal({ foo: true });
   });
 
   it('should print debug output if debug=true', async () => {

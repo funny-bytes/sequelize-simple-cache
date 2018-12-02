@@ -46,25 +46,27 @@ class SequelizeSimpleCache {
 
   init(model) { // Sequelize model object
     const { name: type } = model;
-    // decorate model with interface to cache
-    /* eslint-disable no-param-reassign */
-    model.noCache = () => model;
-    model.clearCache = () => this.clear(type);
-    model.clearCacheAll = () => this.clear();
-    /* eslint-enable no-param-reassign */
     // setup caching for this model
     const config = this.config[type];
-    if (!config) return model; // no caching for this model
-    const { ttl, methods, limit } = config;
-    // create map for model
-    const cache = new Map();
-    this.cache[type] = cache;
-    this.log('init', {
-      type, ttl, methods, limit,
-    });
-    // proxy for intercepting Sequelize methods
+    let cache;
+    if (config) {
+      cache = new Map();
+      this.cache[type] = cache;
+    }
+    this.log('init', { type, ...(config || {}) });
+    // proxy for interception of Sequelize methods and cache decorators
     return new Proxy(model, {
       get: (target, prop) => {
+        // caching interface on model
+        if (prop === 'noCache') return () => model;
+        if (prop === 'clearCache') return () => this.clear(type);
+        if (prop === 'clearCacheAll') return () => this.clear();
+        // no caching for this model
+        if (!config) {
+          return target[prop];
+        }
+        // intercept Sequelize methods on model
+        const { ttl, methods, limit } = config;
         if (!methods.includes(prop)) {
           return target[prop];
         }
