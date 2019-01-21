@@ -497,4 +497,34 @@ describe('SequelizeSimpleCache', () => {
     await User.findOne({ where: { username: 'ron' } });
     expect(cache.size()).to.be.equal(3);
   });
+
+  it('should automatically clear cache on update (default)', async () => {
+    const stub = sinon.stub().resolves([{ username: 'fred' }]);
+    const model = {
+      name: 'User',
+      findAll: stub,
+      update: () => {},
+    };
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
+    const User = cache.init(model);
+    await User.findAll();
+    User.update();
+    await User.findAll();
+    expect(stub.calledTwice).to.be.true;
+  });
+
+  it('should not automatically clear cache on update if clearOnUpdate=false', async () => {
+    const stub = sinon.stub().resolves([{ username: 'fred' }]);
+    const model = {
+      name: 'User',
+      findAll: stub,
+      update: () => {},
+    };
+    const cache = new SequelizeSimpleCache({ User: { clearOnUpdate: false } }, { ops: false });
+    const User = cache.init(model);
+    await User.findAll();
+    User.update();
+    await User.findAll();
+    expect(stub.calledOnce).to.be.true;
+  });
 });

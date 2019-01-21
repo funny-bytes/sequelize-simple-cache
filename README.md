@@ -95,6 +95,14 @@ Model.clearCache(); // only model
 Model.clearCacheAll(); // entire cache
 ```
 
+If the Sequelize methods `update`, `create`, `upsert` or `destroy` are called on the model, the model's cache is automatically cleared by default. You can change this default behavior like this:
+```javascript
+const cache = new SequelizeSimpleCache({
+  User: { }, // default clearOnUpdate is true
+  Page: { clearOnUpdate: false },
+});
+```
+
 ### Bypass caching
 
 Caching can explicitly be bypassed like this:

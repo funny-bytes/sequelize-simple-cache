@@ -7,16 +7,22 @@ class SequelizeSimpleCache {
     const defaults = {
       ttl: 60 * 60, // 1 hour
       methods: ['findById', 'findOne', 'findAll', 'findAndCountAll', 'count', 'min', 'max', 'sum'],
+      methodsUpdate: ['create', 'update', 'destroy', 'upsert'],
       limit: 50,
+      clearOnUpdate: true,
     };
     this.config = Object.entries(config)
       .reduce((acc, [type, {
         ttl = defaults.ttl,
         methods = defaults.methods,
+        methodsUpdate = defaults.methodsUpdate,
         limit = defaults.limit,
+        clearOnUpdate = defaults.clearOnUpdate,
       }]) => ({
         ...acc,
-        [type]: { ttl, methods, limit },
+        [type]: {
+          ttl, methods, methodsUpdate, limit, clearOnUpdate,
+        },
       }), {});
     const {
       debug = false,
@@ -66,9 +72,18 @@ class SequelizeSimpleCache {
           return target[prop];
         }
         // intercept Sequelize methods on model
-        const { ttl, methods, limit } = config;
-        if (!methods.includes(prop)) {
+        const {
+          ttl, methods, methodsUpdate, limit, clearOnUpdate,
+        } = config;
+        if (![...methods, ...methodsUpdate].includes(prop)) {
           return target[prop];
+        }
+        if (methodsUpdate.includes(prop)) {
+          const result = target[prop];
+          if (clearOnUpdate) {
+            this.clear(type);
+          }
+          return result;
         }
         const fn = async (...args) => {
           const key = SequelizeSimpleCache.key({ type, prop, args });
