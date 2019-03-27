@@ -1,6 +1,7 @@
 # sequelize-simple-cache
 
-This is a simple, transparent, client-side, in-memory cache for [Sequelize](https://github.com/sequelize/sequelize) v4.
+This is a simple, transparent, client-side, in-memory cache
+for [Sequelize](https://github.com/sequelize/sequelize) v4 and v5.
 Cache invalidation is based on time-to-live (ttl).
 Selectively add your Sequelize models to the cache.
 Works with all storage engines supported by Sequelize.
@@ -65,8 +66,9 @@ const fred = User.findOne({ where: { username: 'fred' }});
 
 ### Supported methods
 
-Currently, the following methods on Sequelize model instances are supported for caching:
-`findById`, `findOne`, `findAll`, `findAndCountAll`, `count`, `min`, `max`, `sum`.
+The following methods on Sequelize model instances are supported for caching:
+`findOne`, `findAndCountAll`, `findByPk`, `findAll`, `count`, `min`, `max`, `sum`.
+In addition, for Sequelize v4: `find`, `findAndCount`, `findById`, `findByPrimary`, `all`.
 
 ### Non-cacheable queries / bypass caching
 
@@ -95,13 +97,20 @@ Model.clearCache(); // only model
 Model.clearCacheAll(); // entire cache
 ```
 
-If the Sequelize methods `update`, `create`, `upsert` or `destroy` are called on the model, the model's cache is automatically cleared by default. You can change this default behavior like this:
+By default, the model's cache is automatically cleared if these methods are called:
+`update`, `create`, `upsert`, `destroy`, `findOrBuild`.
+In addition, for Sequelize v4: `insertOrUpdate`, `findOrInitialize`, `updateAttributes`.
+
+You can change this default behavior like this:
 ```javascript
 const cache = new SequelizeSimpleCache({
   User: { }, // default clearOnUpdate is true
   Page: { clearOnUpdate: false },
 });
 ```
+
+If you run multiple instances (clients or containers or PODs or alike),
+be aware that cache invalidation is more complex that the above simple approach.
 
 ### Bypass caching
 

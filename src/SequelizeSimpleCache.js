@@ -6,8 +6,14 @@ class SequelizeSimpleCache {
   constructor(config = {}, options = {}) {
     const defaults = {
       ttl: 60 * 60, // 1 hour
-      methods: ['findById', 'findOne', 'findAll', 'findAndCountAll', 'count', 'min', 'max', 'sum'],
-      methodsUpdate: ['create', 'update', 'destroy', 'upsert'],
+      methods: [
+        'findOne', 'findAndCountAll', 'findByPk', 'findAll', 'count', 'min', 'max', 'sum',
+        'find', 'findAndCount', 'findById', 'findByPrimary', 'all', // Sequelize v4 only
+      ],
+      methodsUpdate: [
+        'create', 'update', 'destroy', 'upsert', 'findOrBuild',
+        'insertOrUpdate', 'findOrInitialize', 'updateAttributes', // Sequelize v4 only
+      ],
       limit: 50,
       clearOnUpdate: true,
     };
