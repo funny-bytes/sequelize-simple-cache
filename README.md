@@ -19,10 +19,10 @@ This cache might work for you if you have database tables that
 (1) are frequently read but very rarely written and
 (2) contain only few rows of data.
 
-In a project, we had a couple of database tables that were holding a sort of system configuration.
-Something like 4 or 5 tables with some 50 rows of data.
+In a project, we had a couple of database tables with a sort of configuration.
+Something like 4 or 5 tables with some 10 rows of data.
 Nearly every request needed this data, i.e., it was read all the time.
-But updated only very rarely, once a day maybe.
+But updated only very rarely, e.g, once a day.
 So, pre-fetching or simple in-memory caching would work for us.
 
 If that's not matching your scenario,
@@ -81,6 +81,20 @@ Model.findAll({ where: { startDate: { [Op.lte]: new Date() }, } });
 Model.findAll({ where: { startDate: { [Op.lte]: fn('NOW') }, } });
 // if you don't want a query to be cached, you may explicitly bypass the cache like this
 Model.noCache().findAll(...);
+```
+
+### Time-to-live (ttl)
+
+Each model has its individual time-to-live (ttl), i.e.,
+all database requests on a model are cached for a particular number of seconds.
+Default is one hour.
+For eternal caching, i.e., no automatic cache invalidation, simply set the model's `ttl` to `false` (or any number less or equals `0`).
+```javascript
+const cache = new SequelizeSimpleCache({
+  User: { ttl: 5 * 60 }, // 5 minutes
+  Page: { }, // default ttl is 1 hour
+  Foo: { ttl: false } // cache forever
+});
 ```
 
 ### Clear cache

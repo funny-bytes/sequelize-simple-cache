@@ -97,7 +97,7 @@ class SequelizeSimpleCache {
           const item = cache.get(hash);
           if (item) { // hit
             const { data, expires } = item;
-            if (expires > Date.now()) {
+            if (!expires || expires > Date.now()) {
               this.log('hit', { key, hash, expires });
               return data; // resolve from cache
             }
@@ -107,7 +107,7 @@ class SequelizeSimpleCache {
           assert(promise.then, `${type}.${prop}() did not return a promise but should`);
           return promise.then((data) => {
             if (data !== undefined && data !== null) {
-              const expires = Date.now() + ttl * 1000;
+              const expires = ttl > 0 ? Date.now() + ttl * 1000 : false;
               cache.set(hash, { data, expires });
               this.log('load', { key, hash, expires });
               if (cache.size > limit) {
@@ -153,7 +153,7 @@ class SequelizeSimpleCache {
       if (!cache) return;
       let oldest;
       cache.forEach(({ expires }, hash) => {
-        if (expires <= now) {
+        if (expires && expires <= now) {
           cache.delete(hash);
           this.log('purge', { hash, expires });
         } else if (!oldest || expires < oldest.expires) {
