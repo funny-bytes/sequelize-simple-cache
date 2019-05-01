@@ -16,13 +16,19 @@ global.should = chai.should();
 
 describe('SequelizeSimpleCache', () => {
   let stubConsoleDebug;
+  let stubDateNow;
+  let nowOffset = 0;
 
   beforeEach(() => {
     stubConsoleDebug = sinon.stub(console, 'debug');
+    nowOffset = 0; // reset
+    const now = Date.now();
+    stubDateNow = sinon.stub(Date, 'now').callsFake(() => now + nowOffset);
   });
 
   afterEach(() => {
     stubConsoleDebug.restore(); // eslint-disable-line no-console
+    stubDateNow.restore();
   });
 
   it('should create cache without crashing / no args', () => {
@@ -214,12 +220,28 @@ describe('SequelizeSimpleCache', () => {
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     const result2 = await User.findOne({ where: { username: 'fred' } });
-    await new Promise(resolve => setTimeout(() => resolve(), 1200));
+    nowOffset = 1200;
     const result3 = await User.findOne({ where: { username: 'fred' } });
     expect(stub.calledTwice).to.be.true;
     expect(result1).to.be.deep.equal({ username: 'fred' });
     expect(result2).to.be.deep.equal({ username: 'fred' });
     expect(result3).to.be.deep.equal({ username: 'fred' });
+  });
+
+  it('should cache forever', async () => {
+    const stub = sinon.stub().resolves({ username: 'fred' });
+    const model = {
+      name: 'User',
+      findOne: stub,
+    };
+    const cache = new SequelizeSimpleCache({ User: { ttl: false } }, { ops: false });
+    const User = cache.init(model);
+    const result1 = await User.findOne({ where: { username: 'fred' } });
+    nowOffset = 999999999;
+    const result2 = await User.findOne({ where: { username: 'fred' } });
+    expect(stub.calledOnce).to.be.true;
+    expect(result1).to.be.deep.equal({ username: 'fred' });
+    expect(result2).to.be.deep.equal({ username: 'fred' });
   });
 
   it('should not cache a value of `null`', async () => {
@@ -488,11 +510,8 @@ describe('SequelizeSimpleCache', () => {
     const cache = new SequelizeSimpleCache({ User: { limit: 3 } }, { ops: false });
     const User = cache.init(model);
     await User.findOne({ where: { username: 'john' } });
-    await new Promise(resolve => setTimeout(() => resolve(), 16));
     await User.findOne({ where: { username: 'jim' } });
-    await new Promise(resolve => setTimeout(() => resolve(), 16));
     await User.findOne({ where: { username: 'bob' } });
-    await new Promise(resolve => setTimeout(() => resolve(), 16));
     expect(cache.size()).to.be.equal(3);
     await User.findOne({ where: { username: 'ron' } });
     expect(cache.size()).to.be.equal(3);
