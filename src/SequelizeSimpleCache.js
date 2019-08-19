@@ -141,7 +141,7 @@ class SequelizeSimpleCache {
   size(...modelnames) {
     const types = modelnames.length ? modelnames : Object.keys(this.cache);
     return types
-      .filter(type => this.cache[type])
+      .filter((type) => this.cache[type])
       .reduce((acc, type) => acc + this.cache[type].size, 0);
   }
 

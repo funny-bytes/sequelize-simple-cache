@@ -69,8 +69,8 @@ describe('SequelizeSimpleCache', () => {
     }];
     const hashes = new Set();
     const hashes2 = new Set();
-    queries.forEach(q => hashes.add(md5(SequelizeSimpleCache.key(q))));
-    queries.forEach(q => hashes2.add(md5(SequelizeSimpleCache.key(q))));
+    queries.forEach((q) => hashes.add(md5(SequelizeSimpleCache.key(q))));
+    queries.forEach((q) => hashes2.add(md5(SequelizeSimpleCache.key(q))));
     const union = new Set([...hashes, ...hashes2]);
     expect(hashes.size).to.be.equal(queries.length);
     expect(hashes2.size).to.be.equal(queries.length);
@@ -410,7 +410,7 @@ describe('SequelizeSimpleCache', () => {
     };
     const cache = new SequelizeSimpleCache({ User: {} }, { debug: false, ops: 1 });
     cache.init(model);
-    await new Promise(resolve => setTimeout(() => resolve(), 1200));
+    await new Promise((resolve) => setTimeout(() => resolve(), 1200));
     clearInterval(cache.heart);
     expect(stubConsoleDebug.called).to.be.true;
   });
