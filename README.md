@@ -81,6 +81,8 @@ Model.findAll({ where: { startDate: { [Op.lte]: new Date() }, } });
 Model.findAll({ where: { startDate: { [Op.lte]: fn('NOW') }, } });
 // if you don't want a query to be cached, you may explicitly bypass the cache like this
 Model.noCache().findAll(...);
+// transactions enforce bypassing the cache, e.g.:
+Model.findOne({ where: { name: 'foo' }, transaction: t, lock: true });
 ```
 
 ### Time-to-live (ttl)

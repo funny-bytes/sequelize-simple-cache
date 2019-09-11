@@ -92,6 +92,12 @@ class SequelizeSimpleCache {
           return result;
         }
         const fn = async (...args) => {
+          const withinTxn = args.reduce((acc, { transaction }) => acc || transaction, false);
+          if (withinTxn) { // bypass cache
+            const promise = target[prop](...args);
+            assert(promise.then, `${type}.${prop}() did not return a promise but should`);
+            return promise;
+          }
           const key = SequelizeSimpleCache.key({ type, prop, args });
           const hash = md5(key);
           const item = cache.get(hash);
