@@ -30,19 +30,19 @@
     "sequelize": ">=4.x.x"
   },
   "devDependencies": {
-    "babel-eslint": "^10.0.2",
+    "babel-eslint": "^10.0.3",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.6",
-    "eslint": "^6.2.0",
+    "eslint": "^6.3.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-should-promised": "^2.0.0",
     "mocha": "^6.2.0",
     "nyc": "^14.1.1",
-    "sequelize": "^5.15.1",
-    "sinon": "^7.4.1",
+    "sequelize": "^5.18.4",
+    "sinon": "^7.4.2",
     "sinon-chai": "^3.3.0"
   },
   "dependencies": {
