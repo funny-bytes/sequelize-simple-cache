@@ -337,6 +337,21 @@ describe('SequelizeSimpleCache', () => {
     expect(result2).to.be.deep.equal({ username: 'fred' });
   });
 
+  it('should bypass cache if query with transaction', async () => {
+    const stub = sinon.stub().resolves({ username: 'fred' });
+    const model = {
+      name: 'User',
+      findOne: stub,
+    };
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
+    const User = cache.init(model);
+    const result1 = await User.findOne({ where: { username: 'fred' }, transaction: true });
+    const result2 = await User.findOne({ where: { username: 'fred' }, transaction: true });
+    expect(stub.calledTwice).to.be.true;
+    expect(result1).to.be.deep.equal({ username: 'fred' });
+    expect(result2).to.be.deep.equal({ username: 'fred' });
+  });
+
   it('should bypass cache on model (via model decoration)', async () => {
     const stub = sinon.stub().resolves({ username: 'fred' });
     const model = {
