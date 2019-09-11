@@ -1,6 +1,6 @@
 {
   "name": "sequelize-simple-cache",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A simple, transparent, client-side, in-memory cache for Sequelize",
   "main": "src/SequelizeSimpleCache.js",
   "author": "Frank Thelen",
