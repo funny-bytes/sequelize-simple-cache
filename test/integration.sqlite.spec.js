@@ -1,69 +1,84 @@
-const chai = require('chai');
-const { Sequelize, Model, DataTypes } = require('sequelize');
+const { Sequelize } = require('sequelize');
+const User = require('./User');
 const SequelizeSimpleCache = require('..');
-
-global.chai = chai;
-global.expect = chai.expect;
-global.should = chai.should();
+require('./test-helper');
 
 describe('Integration sqlite', () => {
   let sequelize;
   let cache;
+  let cacheEvents = [];
   let UserCached;
-  let log = [];
 
   before(async () => {
     sequelize = new Sequelize('sqlite::memory:');
-
-    class User extends Model {}
-
-    User.init({
-      username: DataTypes.STRING,
-      birthday: DataTypes.DATE,
-      jobtitle: DataTypes.STRING,
-    }, { sequelize });
 
     cache = new SequelizeSimpleCache({
       User: { ttl: 5 * 60 }, // 5 minutes
     }, {
       debug: true,
-      delegate: (event, details) => {
-        log.push({ event, ...details });
-      },
+      delegate: (event) => cacheEvents.push(event),
     });
 
-    UserCached = cache.init(User);
+    UserCached = cache.init(User(sequelize));
 
     await sequelize.sync();
 
     await UserCached.create({
       username: 'johndoe',
-      birthday: new Date(1990, 3, 15),
       jobtitle: 'manager',
     });
 
     await UserCached.create({
       username: 'janedoe',
-      birthday: new Date(1980, 6, 20),
       jobtitle: 'engineer',
     });
   });
 
   beforeEach(() => {
-    log = [];
     cache.clear();
+    cacheEvents = [];
   });
 
-  it('should call cache when User.findOne', async () => {
-    const jane1 = await UserCached.findOne({ where: { username: 'janedoe' } });
-    expect(jane1).to.have.property('username', 'janedoe');
-    expect(jane1).to.have.property('jobtitle', 'engineer');
-    const jane2 = await UserCached.findOne({ where: { username: 'janedoe' } });
-    expect(jane2).to.have.property('username', 'janedoe');
-    expect(jane2).to.have.property('jobtitle', 'engineer');
-    const jane3 = await UserCached.findOne({ where: { username: 'janedoe' } });
-    expect(jane3).to.have.property('username', 'janedoe');
-    expect(jane3).to.have.property('jobtitle', 'engineer');
-    expect(log.map(({ event }) => event)).to.be.deep.equals(['miss', 'load', 'hit', 'hit']);
+  it('should cache User.findOne', async () => {
+    const findOne = async (username, jobtitle) => {
+      const jane = await UserCached.findOne({ where: { username } });
+      expect(jane).to.have.property('username', username);
+      expect(jane).to.have.property('jobtitle', jobtitle);
+    };
+    await findOne('janedoe', 'engineer');
+    await findOne('janedoe', 'engineer');
+    await findOne('janedoe', 'engineer');
+    expect(cacheEvents).to.be.deep.equals(['miss', 'load', 'hit', 'hit']);
+  });
+
+  it('should cache User.findAll', async () => {
+    const findAll = async (count) => {
+      const users = await UserCached.findAll();
+      expect(users.length).to.be.equal(count);
+    };
+    await findAll(2);
+    await findAll(2);
+    expect(cacheEvents).to.be.deep.equals(['miss', 'load', 'hit']);
+    await UserCached.create({
+      username: 'jimdoe',
+      jobtitle: 'Web Designer',
+    });
+    await findAll(3);
+    await findAll(3);
+    expect(cacheEvents).to.be.deep.equals(['miss', 'load', 'hit', 'miss', 'load', 'hit']);
+  });
+
+  it('should cache User.findByPk', async () => {
+    const findByPk = async (username, jobtitle) => {
+      const jane = await UserCached.findByPk(username);
+      expect(jane).to.have.property('username', username);
+      expect(jane).to.have.property('jobtitle', jobtitle);
+    };
+    await findByPk('janedoe', 'engineer');
+    await findByPk('janedoe', 'engineer');
+    await UserCached.noCache().findByPk('janedoe');
+    await findByPk('janedoe', 'engineer');
+    await findByPk('johndoe', 'manager');
+    expect(cacheEvents).to.be.deep.equals(['miss', 'load', 'hit', 'hit', 'miss', 'load']);
   });
 });
