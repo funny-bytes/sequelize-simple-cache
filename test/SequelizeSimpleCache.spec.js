@@ -1,18 +1,8 @@
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
 const { Op, fn } = require('sequelize');
 const md5 = require('md5');
 const SequelizeSimpleCache = require('..');
-
-chai.use(chaiAsPromised);
-chai.use(sinonChai);
-
-global.chai = chai;
-global.sinon = sinon;
-global.expect = chai.expect;
-global.should = chai.should();
+require('./test-helper');
 
 describe('SequelizeSimpleCache', () => {
   let stubConsoleDebug;
@@ -532,6 +522,21 @@ describe('SequelizeSimpleCache', () => {
     expect(cache.size()).to.be.equal(3);
   });
 
+  it('should automatically clear cache on create (default)', async () => {
+    const stub = sinon.stub().resolves([{ username: 'fred' }]);
+    const model = {
+      name: 'User',
+      findAll: stub,
+      create: () => {},
+    };
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
+    const User = cache.init(model);
+    await User.findAll();
+    User.create({ username: 'jim-bob' });
+    await User.findAll();
+    expect(stub.calledTwice).to.be.true;
+  });
+
   it('should automatically clear cache on update (default)', async () => {
     const stub = sinon.stub().resolves([{ username: 'fred' }]);
     const model = {
@@ -543,6 +548,21 @@ describe('SequelizeSimpleCache', () => {
     const User = cache.init(model);
     await User.findAll();
     User.update();
+    await User.findAll();
+    expect(stub.calledTwice).to.be.true;
+  });
+
+  it('should automatically clear cache on bulkCreate (default)', async () => {
+    const stub = sinon.stub().resolves([{ username: 'fred' }]);
+    const model = {
+      name: 'User',
+      findAll: stub,
+      bulkCreate: () => {},
+    };
+    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
+    const User = cache.init(model);
+    await User.findAll();
+    User.bulkCreate();
     await User.findAll();
     expect(stub.calledTwice).to.be.true;
   });

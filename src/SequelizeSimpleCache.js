@@ -11,7 +11,7 @@ class SequelizeSimpleCache {
         'find', 'findAndCount', 'findById', 'findByPrimary', 'all', // Sequelize v4 only
       ],
       methodsUpdate: [
-        'create', 'update', 'destroy', 'upsert', 'findOrBuild',
+        'create', 'bulkCreate', 'update', 'destroy', 'upsert', 'findOrBuild',
         'insertOrUpdate', 'findOrInitialize', 'updateAttributes', // Sequelize v4 only
       ],
       limit: 50,
