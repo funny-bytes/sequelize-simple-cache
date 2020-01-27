@@ -23,7 +23,7 @@
     "preversion": "npm run lint && npm test"
   },
   "engines": {
-    "node": ">=8.x.x"
+    "node": ">=10.x.x"
   },
   "peerDependencies": {
     "sequelize": ">=4.x.x"
