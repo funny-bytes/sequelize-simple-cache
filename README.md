@@ -256,7 +256,7 @@ A template for how models can be set up
 const { Model, DataTypes } = require('sequelize')
 
 class User extends Model {
-	// The table model
+	// The table model [Left blank]
 }
 
 // The function that will either create a table or synchronize sequelize with the database
