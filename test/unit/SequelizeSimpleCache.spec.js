@@ -1,8 +1,8 @@
 const sinon = require('sinon');
 const { Op, fn } = require('sequelize');
 const md5 = require('md5');
-const SequelizeSimpleCache = require('..');
-require('./test-helper');
+const SequelizeSimpleCache = require('../..');
+require('../test-helper');
 
 describe('SequelizeSimpleCache', () => {
   let stubConsoleDebug;

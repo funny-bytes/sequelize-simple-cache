@@ -1,7 +1,7 @@
 const { Sequelize } = require('sequelize');
 const User = require('./User');
-const SequelizeSimpleCache = require('..');
-require('./test-helper');
+const SequelizeSimpleCache = require('../..');
+require('../test-helper');
 
 describe('Integration sqlite', () => {
   let sequelize;

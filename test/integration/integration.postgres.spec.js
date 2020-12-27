@@ -2,8 +2,8 @@ const { Sequelize } = require('sequelize');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const User = require('./User');
-const SequelizeSimpleCache = require('..');
-require('./test-helper');
+const SequelizeSimpleCache = require('../..');
+require('../test-helper');
 
 describe('Integration postgres', () => {
   let sequelize;
@@ -12,7 +12,7 @@ describe('Integration postgres', () => {
   let UserCached;
 
   before(async () => {
-    await exec('sh test/startPostgres.sh');
+    await exec('sh test/integration/startPostgres.sh');
 
     sequelize = new Sequelize({
       dialect: 'postgres',
@@ -50,7 +50,7 @@ describe('Integration postgres', () => {
   });
 
   after(async () => {
-    await exec('sh test/stopPostgres.sh');
+    await exec('sh test/integration/stopPostgres.sh');
   });
 
   beforeEach(() => {

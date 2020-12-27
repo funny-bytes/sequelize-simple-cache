@@ -28,8 +28,8 @@ better look for something more sophisticated such as Redis or Memcached.
 
 Tested with
 
-* Sequelize 6, Node 12/14/15, integration tested with Postgres 11/12 (pg 8) and sqlite3 v5 (in-memory)
-* Sequelize 5, Node 10/12/13, integration tested with Postgres 10/11 (pg 7) and sqlite3 v4 (in-memory)
+* Sequelize 6, Node 12/14/15, integration tested with Postgres 11/12 (via pg 8) and sqlite3 v5 (memory)
+* Sequelize 5, Node 10/12/13, integration tested with Postgres 10/11 (via pg 7) and sqlite3 v4 (memory)
 
 ## Install
 

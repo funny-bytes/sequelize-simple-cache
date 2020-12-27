@@ -18,9 +18,10 @@
   ],
   "scripts": {
     "lint": "eslint . --ignore-path ./.eslintignore",
-    "test": "NODE_ENV=test nyc --reporter=lcov --reporter=text-summary mocha --exit --recursive --timeout 60000 test",
+    "test": "NODE_ENV=test nyc --reporter=lcov --reporter=text-summary mocha --exit --recursive --timeout 2000 test/unit",
+    "itest": "NODE_ENV=itest mocha --exit --recursive --timeout 60000 test/integration",
     "coveralls": "nyc report --reporter=lcovonly && cat ./coverage/lcov.info | coveralls",
-    "preversion": "npm run lint && npm test"
+    "preversion": "npm run lint && npm test && npm itest"
   },
   "engines": {
     "node": ">=10.x.x"
