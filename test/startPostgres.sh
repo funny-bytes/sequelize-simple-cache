@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
 echo "start database..."
 
-docker run --rm --name pgitest -e POSTGRES_PASSWORD=docker -d -p 5432:5432 postgres:10
+docker run --rm --name pgitest -e POSTGRES_PASSWORD=docker -d -p 5432:5432 postgres:11
 
 sleep 3
 while ! nc -z localhost 5432; do

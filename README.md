@@ -1,7 +1,6 @@
 # sequelize-simple-cache
 
-This is a simple, transparent, client-side, in-memory cache
-for [Sequelize](https://github.com/sequelize/sequelize) v4 and v5.
+This is a simple, transparent, client-side, in-memory cache for [Sequelize](https://github.com/sequelize/sequelize).
 Cache invalidation is based on time-to-live (ttl).
 Selectively add your Sequelize models to the cache.
 Works with all storage engines supported by Sequelize.
@@ -9,7 +8,6 @@ Works with all storage engines supported by Sequelize.
 [![Build Status](https://travis-ci.org/frankthelen/sequelize-simple-cache.svg?branch=master)](https://travis-ci.org/frankthelen/sequelize-simple-cache)
 [![Coverage Status](https://coveralls.io/repos/github/frankthelen/sequelize-simple-cache/badge.svg?branch=master)](https://coveralls.io/github/frankthelen/sequelize-simple-cache?branch=master)
 [![Dependencies Status](https://david-dm.org/frankthelen/sequelize-simple-cache.svg)](https://david-dm.org/frankthelen/sequelize-simple-cache)
-[![Greenkeeper badge](https://badges.greenkeeper.io/frankthelen/sequelize-simple-cache.svg)](https://greenkeeper.io/)
 [![Maintainability](https://api.codeclimate.com/v1/badges/c8bdb1fc29ef12070cac/maintainability)](https://codeclimate.com/github/frankthelen/sequelize-simple-cache/maintainability)
 [![node](https://img.shields.io/node/v/sequelize-simple-cache.svg)]()
 [![code style](https://img.shields.io/badge/code_style-airbnb-brightgreen.svg)](https://github.com/airbnb/javascript)
@@ -27,6 +25,11 @@ So, pre-fetching or simple in-memory caching would work for us.
 
 If that's not matching your scenario,
 better look for something more sophisticated such as Redis or Memcached.
+
+Tested with
+
+* Sequelize 6, Node 12/14/15, integration tested with Postgres 11/12 (pg 8) and sqlite3 v5 (in-memory)
+* Sequelize 5, Node 10/12/13, integration tested with Postgres 10/11 (pg 7) and sqlite3 v4 (in-memory)
 
 ## Install
 
