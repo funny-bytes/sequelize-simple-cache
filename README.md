@@ -212,3 +212,205 @@ const cache = useCache ? new SequelizeSimpleCache({...}) : undefined;
 const model = require('./models/model')(sequelize);
 const Model = useCache ? cache.init(model) : model;
 ```
+
+
+# Completely Transparent Cache
+
+Below is an example of a project that uses SequelizeSimpleCache as a completely transparent cache, we will be replacing the default models on sequelize with the functions from SequelizeSimpleCache. SequelizeSimpleCache will sit as a layer between the database access object (DAO) and the sequelize models, accessing and checking the cache before querying the database. Anytime you wish to use sequelize in the project, it would be imported from `/lib/sequelize.js`
+
+
+### Project Structure
+
+```
+```
+project
+│  `package.json` 
+│
+└──src
+│   │   `app.js`
+│   │   `server.js`
+│   │
+│   └─────lib
+│       │   `sequelize.js`
+│       │
+│   └─────models
+│       │    `User.js`
+│       │
+```
+```
+
+## Getting started
+
+### project/app.js
+
+Initialise a HTTP server
+
+```javascript
+const express = require('express');
+const app = express();
+const { sequelize } = require('./lib/sequelize');
+// set up middleware
+module.exports = { app };
+```
+
+### project/server.js
+
+The entry point for the application, this is the file that node will run with `node /src/server.js`
+
+```javascript
+const { createServer } = require('http');
+const { app } = require('./app');
+const { sequelize } = require('./lib/sequelize');
+
+// run server
+(async () => {
+	// test we are connected to the database
+	await sequelize.authenticate();
+	
+	// start the server on port 3000
+	createServer(app).listen(3000, () =>  console.log(`Server running on http://localhost:3000`));
+})();
+```
+
+### project/models/User.js
+
+A template for how models can be set up
+
+```javascript
+const { Model, DataTypes } = require('sequelize')
+
+class User extends Model {
+	// The table model [Left blank]
+}
+
+// The function that will either create a table or synchronize sequelize with the database
+const sync = async (sequelize, options = { force:  false }) => {
+	User.init({
+		'userID': {
+			'type':  DataTypes.INTEGER.UNSIGNED,
+			'autoIncrement':  true,
+			'primaryKey':  true
+		},
+		'firstName': {
+			'type':  DataTypes.STRING,
+			'allowNull':  false
+		},
+		'lastName': {
+			'type':  DataTypes.STRING,
+			'allowNull':  false
+		},
+		'email': {
+			'type':  DataTypes.STRING,
+			'allowNull':  false,
+			'unique':  true,	
+			'validate': {
+				'isEmail':  true
+			}
+		}
+	}, {
+		'tableName':  'USER',
+		'sequelize':  sequelize,
+	});
+	
+	// Sync the table to the database
+	await User.sync(options);
+
+	// Add Hooks Here
+	// example User.beforeCreate(() => {})
+
+	return User;
+}
+
+const assosciate = async (sequelize) => {
+	// Add table assosciations
+	// eg. User.belongsTo(Group);
+	return User;
+}
+
+// Export
+module.exports = {
+	User,
+	sync,
+	assosciate
+}
+```
+
+### project/lib/sequelize.js
+
+Where we swap out the default sequelize model for the cache layer, the cache layer will hold the methods for the database, all instances of sequelize used in the project will import it from this file
+
+```javascript
+const { Sequelize } = require('sequelize');
+const SequelizeSimpleCache = require('sequelize-simple-cache');
+
+// Import all models
+let User = require('../models/User');
+
+// Create a Sequelize Cache object and assign it the Sequelize prototype
+const SequelizeCache = Object.assign(Sequelize);
+
+// Assign the Sequelize constructor to the Sequelize Cache object
+SequelizeCache.prototype.constructor = Sequelize;
+
+// Create the database access object
+const sequelize = new SequelizeCache(
+	'DATABASE', // DATABASE NAME
+	'root', // DATABASE USERNAME
+	'example', // DATABASE PASSWORD
+	{
+		'dialect':  'mysql', // DATABASE ENGINE
+		'host':  'localhost', // DATABASE HOST
+		'port':  '3306', // DATABASE PORT
+	}
+);
+
+// Immediately Invoked Function Expression (IIFE)
+(async() => {
+	// Sync all Models
+	await User.sync(sequelize, { force:  true });
+
+	// Create foreign key constraints on all models
+	await User.assosciate(sequelize);
+
+	// Assign the model to the variable
+	User = User.User;
+
+	// Register the SequelizeSimpleCache and add our models
+	// then add the cache to our sequelize object
+	// so we can access the cache from other files
+	// 5 * 60 = 5 Minutes with a maximum cache capacity of 50 Users
+	sequelize._cache = new SequelizeSimpleCache({
+		User: { ttl:  5 * 60, limit:  50 },
+	}, {
+		debug: true  // console.log debug output
+	});
+
+	// All of the models that are registered with sequelize
+	// are added to the sequelize.models object,
+	// here we replace the models that were registered with Model.init() [In the model files]
+	// with the models in the cache, in the one line
+	// we add the model to the cache by completeing the right hand
+	// assignment first, then replace the default Model with the cachable model
+	sequelize.models['User'] = sequelize._cache.init(sequelize.modelManager.addModel(User));
+  
+
+	// Create a fake user for testing
+	try {
+		await  User.create({
+			'email':  'root@admin.com',
+			'password':  'password1',
+			'firstName':  'admin',
+			'lastName':  'admin'
+		});
+	} catch (err) {
+		console.error(err);
+	}
+
+	// Try to retrieve the test user
+	console.log(await sequelize.models.User.findAll());
+})();
+
+module.exports = {
+	sequelize,
+};
+```
