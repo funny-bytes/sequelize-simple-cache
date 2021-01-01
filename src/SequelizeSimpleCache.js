@@ -2,26 +2,25 @@ const md5 = require('md5');
 const { inspect } = require('util');
 const assert = require('assert');
 
-const defaults = {
-  ttl: 60 * 60, // 1 hour
-  methods: [
-    'findOne', 'findAndCountAll', 'findByPk', 'findAll', 'count', 'min', 'max', 'sum',
-    'find', 'findAndCount', 'findById', 'findByPrimary', 'all', // Sequelize v4 only
-  ],
-  methodsUpdate: [
-    'create', 'bulkCreate', 'update', 'destroy', 'upsert', 'findOrBuild',
-    'insertOrUpdate', 'findOrInitialize', 'updateAttributes', // Sequelize v4 only
-  ],
-  limit: 50,
-  clearOnUpdate: true,
-};
-
 class SequelizeSimpleCache {
   constructor(config = {}, options = {}) {
-    const optionsOnly = (typeof config.debug === 'boolean')
-      || (typeof config.ops === 'number')
-      || (typeof config.delegate === 'function');
-    this.config = Object.entries(optionsOnly ? {} : config)
+    const defaults = {
+      ttl: 60 * 60, // 1 hour
+      methods: [
+        'findOne', 'findAndCountAll', 'findByPk', 'findAll', 'count', 'min', 'max', 'sum',
+        'find', 'findAndCount', 'findById', 'findByPrimary', 'all', // Sequelize v4 only
+      ],
+      methodsUpdate: [
+        'create', 'bulkCreate', 'update', 'destroy', 'upsert', 'findOrBuild',
+        'insertOrUpdate', 'findOrInitialize', 'updateAttributes', // Sequelize v4 only
+      ],
+      limit: 50,
+      clearOnUpdate: true,
+    };
+    const configHash = Array.isArray(config) // alternative interface for TypeScript
+      ? config.reduce((acc, { type, ...rest }) => ({ ...acc, [type]: rest }), {})
+      : config;
+    this.config = Object.entries(configHash)
       .reduce((acc, [type, {
         ttl = defaults.ttl,
         methods = defaults.methods,
@@ -38,7 +37,7 @@ class SequelizeSimpleCache {
       debug = false,
       ops = 0, // eslint-disable-next-line no-console
       delegate = (event, details) => console.debug(`CACHE ${event.toUpperCase()}`, details),
-    } = (optionsOnly ? config : options);
+    } = options;
     this.debug = debug;
     this.ops = ops;
     this.delegate = delegate;
@@ -60,23 +59,8 @@ class SequelizeSimpleCache {
     return inspect(obj, { depth: Infinity, maxArrayLength: Infinity, breakLength: Infinity });
   }
 
-  add(model, config = {}) { // alternative interface for typescript
-    const { name: type } = model; // Sequelize model object
-    const {
-      ttl = defaults.ttl,
-      methods = defaults.methods,
-      methodsUpdate = defaults.methodsUpdate,
-      limit = defaults.limit,
-      clearOnUpdate = defaults.clearOnUpdate,
-    } = config;
-    this.config[type] = {
-      ttl, methods, methodsUpdate, limit, clearOnUpdate,
-    };
-    return this.init(model);
-  }
-
-  init(model) {
-    const { name: type } = model; // Sequelize model object
+  init(model) { // Sequelize model object
+    const { name: type } = model;
     // setup caching for this model
     const config = this.config[type];
     let cache;
