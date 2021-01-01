@@ -2,7 +2,8 @@
   "name": "sequelize-simple-cache",
   "version": "1.1.4",
   "description": "A simple, transparent, client-side, in-memory cache for Sequelize",
-  "main": "src/SequelizeSimpleCache.js",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
   "author": "Frank Thelen",
   "license": "MIT",
   "repository": {
@@ -30,6 +31,8 @@
     "sequelize": ">=4.x.x"
   },
   "devDependencies": {
+    "@types/node": "^14.14.17",
+    "@types/validator": "^13.1.2",
     "babel-eslint": "^10.1.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
