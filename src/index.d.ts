@@ -7,7 +7,7 @@ export default class SequelizeSimpleCache {
 }
 
 export interface SequelizeSimpleCacheConfig {
-  type: string;
+  name: string;
   ttl?: number;
   limit?: number;
   clearOnUpdate?: boolean;
