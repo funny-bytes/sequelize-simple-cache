@@ -29,12 +29,20 @@ describe('SequelizeSimpleCache', () => {
     expect(() => new SequelizeSimpleCache({}, {})).to.not.throw();
   });
 
+  it('should create cache without crashing / empty args / 1 / config array', () => {
+    expect(() => new SequelizeSimpleCache([], {})).to.not.throw();
+  });
+
   it('should create cache without crashing / empty args / 2', () => {
     expect(() => new SequelizeSimpleCache({}, { ops: false })).to.not.throw();
   });
 
   it('should create cache without crashing / dummy model', () => {
     expect(() => new SequelizeSimpleCache({ User: {} }, { ops: false })).to.not.throw();
+  });
+
+  it('should create cache without crashing / dummy model / config array', () => {
+    expect(() => new SequelizeSimpleCache([{ name: 'User' }], { ops: false })).to.not.throw();
   });
 
   it('should generate unique hashes for Sequelize queries with ES6 symbols and functions', () => {
@@ -67,13 +75,13 @@ describe('SequelizeSimpleCache', () => {
     expect(union.size).to.be.equal(queries.length);
   });
 
-  it('should create decorations on model / cached', async () => {
+  it('should create decorations on model / cached / config array', async () => {
     const stub = sinon.stub().resolves({ username: 'fred' });
     const model = {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: {} }, { ops: false });
+    const cache = new SequelizeSimpleCache([{ name: 'User' }], { ops: false });
     const User = cache.init(model);
     expect(User.noCache).to.be.a('function');
     expect(User.clearCache).to.be.a('function');
@@ -200,13 +208,13 @@ describe('SequelizeSimpleCache', () => {
     expect(result2).to.be.deep.equal({ username: 'fred' });
   });
 
-  it('should cache but expire after ttl', async () => {
+  it('should cache but expire after ttl / config array', async () => {
     const stub = sinon.stub().resolves({ username: 'fred' });
     const model = {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: { ttl: 1 } }, { ops: false });
+    const cache = new SequelizeSimpleCache([{ name: 'User', ttl: 1 }], { ops: false });
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     const result2 = await User.findOne({ where: { username: 'fred' } });
@@ -218,13 +226,13 @@ describe('SequelizeSimpleCache', () => {
     expect(result3).to.be.deep.equal({ username: 'fred' });
   });
 
-  it('should cache forever', async () => {
+  it('should cache forever / config array', async () => {
     const stub = sinon.stub().resolves({ username: 'fred' });
     const model = {
       name: 'User',
       findOne: stub,
     };
-    const cache = new SequelizeSimpleCache({ User: { ttl: false } }, { ops: false });
+    const cache = new SequelizeSimpleCache([{ name: 'User', ttl: false }], { ops: false });
     const User = cache.init(model);
     const result1 = await User.findOne({ where: { username: 'fred' } });
     nowOffset = 999999999;
