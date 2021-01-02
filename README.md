@@ -225,10 +225,7 @@ const Model = useCache ? cache.init(model) : model;
 `SequelizeSimpleCache` includes type definitions for TypeScript.
 They are based on the [Sequelize types](https://sequelize.org/master/manual/typescript.html).
 
-Please note that -- for the sake of types -- the interface of `new SequelizeSimpleCache()`
-had to be changed slightly.
-
-For this module to work, TypeScript compiler options must include:
+For this module to work, your TypeScript compiler options must include:
 
 ```json
 {
@@ -239,6 +236,9 @@ For this module to work, TypeScript compiler options must include:
   }
 }
 ```
+
+Please note that -- for the sake of good typing -- the interface of `new SequelizeSimpleCache()`
+had to be changed slightly.
 
 A quick example:
 
