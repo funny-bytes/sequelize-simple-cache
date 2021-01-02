@@ -228,6 +228,18 @@ They are based on the [Sequelize types](https://sequelize.org/master/manual/type
 Please note that -- for the sake of types -- the interface of `new SequelizeSimpleCache()`
 had to be changed slightly.
 
+For this module to work, TypeScript compiler options must include:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2015", // or later
+    "moduleResolution": "node",
+    "esModuleInterop": true
+  }
+}
+```
+
 A quick example:
 
 ```typescript
