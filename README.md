@@ -233,7 +233,7 @@ For this module to work, TypeScript compiler options must include:
 ```json
 {
   "compilerOptions": {
-    "target": "ES2015", /* or later */
+    "target": "ES2015", // or later
     "moduleResolution": "node",
     "esModuleInterop": true
   }
