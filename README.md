@@ -11,6 +11,7 @@ Works with all storage engines supported by Sequelize.
 [![Maintainability](https://api.codeclimate.com/v1/badges/c8bdb1fc29ef12070cac/maintainability)](https://codeclimate.com/github/frankthelen/sequelize-simple-cache/maintainability)
 [![node](https://img.shields.io/node/v/sequelize-simple-cache.svg)]()
 [![code style](https://img.shields.io/badge/code_style-airbnb-brightgreen.svg)](https://github.com/airbnb/javascript)
+[![Types](https://img.shields.io/npm/types/sequelize-simple-cache.svg)](https://www.npmjs.com/package/sequelize-simple-cache)
 [![License Status](http://img.shields.io/npm/l/sequelize-simple-cache.svg)]()
 
 This cache might work for you if you have database tables that
@@ -48,7 +49,7 @@ const SequelizeSimpleCache = require('sequelize-simple-cache');
 // create db connection
 const sequelize = new Sequelize('database', 'username', 'password', { ... });
 
-// initialize cache
+// create cache -- referring to Sequelize models by name, e.g., `User`
 const cache = new SequelizeSimpleCache({
   User: { ttl: 5 * 60 }, // 5 minutes
   Page: { }, // default ttl is 1 hour
@@ -66,7 +67,7 @@ const Order = cache.init(require('./models/order')(sequelize));
 
 // the Sequelize model API is fully transparent, no need to change anything.
 // first time resolved from database, subsequent times from local cache.
-const fred = User.findOne({ where: { username: 'fred' }});
+const fred = await User.findOne({ where: { name: 'fred' }});
 ```
 
 `./models/user.js` might look like this:
@@ -76,6 +77,12 @@ const { Model } = require('sequelize');
 class User extends Model {}
 module.exports = (sequelize) => User.init({ /* attributes */ }, { sequelize });
 ```
+
+Please note that `SequelizeSimpleCache` refers to Sequelize **models by name**.
+The model name is usually equals the class name (e.g., `class User extends Model {}` &#8594; `User`).
+Unless it is specified differently in the model options' `modelName` property
+(e.g., `User.init({ /* attributes */ }, { sequelize, modelName: 'Foo' })` &#8594; `Foo`).
+The same is true if you are using `sequelize.define()` to define your models.
 
 ## More Details
 
@@ -96,7 +103,7 @@ Model.findAll({ where: { startDate: { [Op.lte]: new Date() }, } });
 // you should do it this way
 Model.findAll({ where: { startDate: { [Op.lte]: fn('NOW') }, } });
 // if you don't want a query to be cached, you may explicitly bypass the cache like this
-Model.noCache().findAll(...);
+Model.noCache().findAll(/* ... */);
 // transactions enforce bypassing the cache, e.g.:
 Model.findOne({ where: { name: 'foo' }, transaction: t, lock: true });
 ```
@@ -121,7 +128,7 @@ const cache = new SequelizeSimpleCache({
 There are these ways to clear the cache.
 
 ```javascript
-const cache = new SequelizeSimpleCache({...});
+const cache = new SequelizeSimpleCache({ /* ... */ });
 // clear all
 cache.clear();
 // clear all entries of specific models
@@ -152,7 +159,7 @@ be aware that cache invalidation is more complex that the above simple approach.
 Caching can explicitly be bypassed like this:
 
 ```javascript
-Model.noCache().findOne(...);
+Model.noCache().findOne(/* ... */);
 ```
 
 ### Limit
@@ -207,8 +214,53 @@ This is actually the way I am doing it; plus a few extra unit tests for caching.
 const config = require('config');
 const useCache = config.get('database.cache');
 // initializing the cache
-const cache = useCache ? new SequelizeSimpleCache({...}) : undefined;
+const cache = useCache ? new SequelizeSimpleCache({/* ... */}) : undefined;
 // loading the models
 const model = require('./models/model')(sequelize);
 const Model = useCache ? cache.init(model) : model;
+```
+
+## TypeScript Support
+
+`SequelizeSimpleCache` includes type definitions for TypeScript.
+They are based on the [Sequelize types](https://sequelize.org/master/manual/typescript.html).
+
+Please note that -- for the sake of types -- the interface of `new SequelizeSimpleCache()`
+had to be changed slightly.
+
+A quick example:
+
+```typescript
+import { Sequelize, Model, DataTypes } from "sequelize";
+import SequelizeSimpleCache from "sequelize-simple-cache";
+
+interface UserAttributes {
+  id: number;
+  name: string;
+}
+
+class User extends Model<UserAttributes> implements UserAttributes {
+  public id!: number;
+  public name!: string;
+}
+
+// create db connection
+const sequelize = new Sequelize(/* ... */);
+
+// initialize models
+User.init({ /* attributes */ }, { sequelize, tableName: 'users' });
+
+// create cache -- referring to Sequelize models by name, e.g., `User`
+const cache = new SequelizeSimpleCache([{
+  name: 'User', ttl: 5 * 60, // 5 minutes
+}, {
+  name: 'Page', // default ttl is 1 hour
+}]);
+
+// add User model to the cache
+const UserCached = cache.init<User>(User);
+
+// the Sequelize model API is fully transparent, no need to change anything.
+// first time resolved from database, subsequent times from local cache.
+const fred = await UserCached.findOne({ where: { name: 'fred' }});
 ```
