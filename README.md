@@ -225,17 +225,9 @@ const Model = useCache ? cache.init(model) : model;
 `SequelizeSimpleCache` includes type definitions for TypeScript.
 They are based on the [Sequelize types](https://sequelize.org/master/manual/typescript.html).
 
-For this module to work, your TypeScript compiler options must include:
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES2015", // or later
-    "moduleResolution": "node",
-    "esModuleInterop": true
-  }
-}
-```
+For this module to work, your **TypeScript compiler options** must include
+`"target": "ES2015"` (or later), `"moduleResolution": "node"`, and
+`"esModuleInterop": true`.
 
 Please note that -- for the sake of good typing -- the interface of `new SequelizeSimpleCache()`
 had to be changed slightly.
