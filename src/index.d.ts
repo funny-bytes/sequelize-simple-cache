@@ -1,13 +1,16 @@
 import { Model, ModelCtor, ModelStatic } from "sequelize";
 
 export default class SequelizeSimpleCache {
-  constructor(config: SequelizeSimpleCacheConfig[], options?: SequelizeSimpleCacheOptions);
+  constructor(config: SequelizeSimpleCacheConfig, options?: SequelizeSimpleCacheOptions);
   init<M extends Model>(model: ModelStatic<M>) : ModelCtor<M> & SequelizeSimpleCacheModel<M>;
   clear(modelnames?: string[]): void;
 }
 
 export interface SequelizeSimpleCacheConfig {
-  name: string;
+  [modelname: string]: SequelizeSimpleCacheModelConfig;
+}
+
+export interface SequelizeSimpleCacheModelConfig {
   ttl?: number;
   limit?: number;
   clearOnUpdate?: boolean;

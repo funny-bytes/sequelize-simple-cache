@@ -229,9 +229,6 @@ For this module to work, your **TypeScript compiler options** must include
 `"target": "ES2015"` (or later), `"moduleResolution": "node"`, and
 `"esModuleInterop": true`.
 
-Please note that -- for the sake of good typing -- the interface of `new SequelizeSimpleCache()`
-had to be changed slightly.
-
 A quick example:
 
 ```typescript
@@ -255,11 +252,10 @@ const sequelize = new Sequelize(/* ... */);
 User.init({ /* attributes */ }, { sequelize, tableName: 'users' });
 
 // create cache -- referring to Sequelize models by name, e.g., `User`
-const cache = new SequelizeSimpleCache([{
-  name: 'User', ttl: 5 * 60, // 5 minutes
-}, {
-  name: 'Page', // default ttl is 1 hour
-}]);
+const cache = new SequelizeSimpleCache({
+  [User.name]: { ttl: 5 * 60 }, // 5 minutes
+  'Foo': {}, // default ttl is 1 hour
+});
 
 // add User model to the cache
 const UserCached = cache.init<User>(User);

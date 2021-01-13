@@ -17,10 +17,7 @@ class SequelizeSimpleCache {
       limit: 50,
       clearOnUpdate: true,
     };
-    const configHash = Array.isArray(config) // alternative interface for TypeScript
-      ? config.reduce((acc, { name, ...rest }) => ({ ...acc, [name]: rest }), {})
-      : config;
-    this.config = Object.entries(configHash)
+    this.config = Object.entries(config)
       .reduce((acc, [type, {
         ttl = defaults.ttl,
         methods = defaults.methods,

@@ -42,7 +42,11 @@ User.init(attributes, { sequelize, ...options });
 
 let debugSpy = []; // spy
 
-const cache = new SequelizeSimpleCache([{ name: User.name, ttl: 60000 }], {
+const cache = new SequelizeSimpleCache({
+  [User.name]: { ttl: 60000 },
+  foo: {},
+  bar: { ttl: 10000 },
+}, {
   debug: true, delegate: (event, details) => { debugSpy.push(event) }
 });
 
