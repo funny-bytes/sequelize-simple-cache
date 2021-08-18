@@ -8,7 +8,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/frankthelen/sequelize-simple-cache"
+    "url": "git://github.com/funny-bytes/sequelize-simple-cache"
   },
   "keywords": [
     "Sequelize",
