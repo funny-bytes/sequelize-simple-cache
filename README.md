@@ -5,10 +5,10 @@ Cache invalidation is based on time-to-live (ttl).
 Selectively add your Sequelize models to the cache.
 Works with all storage engines supported by Sequelize.
 
-[![Build Status](https://travis-ci.org/frankthelen/sequelize-simple-cache.svg?branch=master)](https://travis-ci.org/frankthelen/sequelize-simple-cache)
-[![Coverage Status](https://coveralls.io/repos/github/frankthelen/sequelize-simple-cache/badge.svg?branch=master)](https://coveralls.io/github/frankthelen/sequelize-simple-cache?branch=master)
-[![Dependencies Status](https://david-dm.org/frankthelen/sequelize-simple-cache.svg)](https://david-dm.org/frankthelen/sequelize-simple-cache)
-[![Maintainability](https://api.codeclimate.com/v1/badges/c8bdb1fc29ef12070cac/maintainability)](https://codeclimate.com/github/frankthelen/sequelize-simple-cache/maintainability)
+![main workflow](https://github.com/funny-bytes/sequelize-simple-cache/actions/workflows/main.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/funny-bytes/sequelize-simple-cache/badge.svg?branch=master)](https://coveralls.io/github/funny-bytes/sequelize-simple-cache?branch=master)
+[![Dependencies Status](https://david-dm.org/funny-bytes/sequelize-simple-cache.svg)](https://david-dm.org/funny-bytes/sequelize-simple-cache)
+[![Maintainability](https://api.codeclimate.com/v1/badges/c8bdb1fc29ef12070cac/maintainability)](https://codeclimate.com/github/funny-bytes/sequelize-simple-cache/maintainability)
 [![node](https://img.shields.io/node/v/sequelize-simple-cache.svg)]()
 [![code style](https://img.shields.io/badge/code_style-airbnb-brightgreen.svg)](https://github.com/airbnb/javascript)
 [![Types](https://img.shields.io/npm/types/sequelize-simple-cache.svg)](https://www.npmjs.com/package/sequelize-simple-cache)
