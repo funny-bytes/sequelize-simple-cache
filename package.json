@@ -25,7 +25,7 @@
     "test:integration:postgres": "mocha --exit --recursive --timeout 60000 test/integration/integration.postgres.spec.js",
     "test:integration:sqlite": "mocha --exit --recursive --timeout 60000 test/integration/integration.sqlite.spec.js",
     "test:typescript": "mocha -r ts-node/register test/typescript/**/*.spec.ts",
-    "coveralls": "nyc report --reporter=lcovonly && cat ./coverage/lcov.info | coveralls",
+    "coverage": "nyc report --reporter=lcovonly",
     "preversion": "npm run lint && npm run test:unit && npm run test:integration && npm run test:typescript"
   },
   "engines": {

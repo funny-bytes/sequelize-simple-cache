@@ -23,7 +23,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
       - run: npm run lint
-      - run: npm run test
+      - name: Test
+        run: |
+          npm run ci-test
+          npm run coverage
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
