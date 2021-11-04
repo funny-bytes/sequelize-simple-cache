@@ -29,7 +29,7 @@
     "preversion": "npm run lint && npm run test:unit && npm run test:integration && npm run test:typescript"
   },
   "engines": {
-    "node": ">=10.x.x"
+    "node": ">=12.x.x"
   },
   "peerDependencies": {
     "sequelize": ">=4.x.x"
