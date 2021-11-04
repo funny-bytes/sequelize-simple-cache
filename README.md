@@ -9,7 +9,7 @@ Works with all storage engines supported by Sequelize.
 [![Coverage Status](https://coveralls.io/repos/github/funny-bytes/sequelize-simple-cache/badge.svg?branch=master)](https://coveralls.io/github/funny-bytes/sequelize-simple-cache?branch=master)
 [![Dependencies Status](https://david-dm.org/funny-bytes/sequelize-simple-cache.svg)](https://david-dm.org/funny-bytes/sequelize-simple-cache)
 [![Maintainability](https://api.codeclimate.com/v1/badges/c8bdb1fc29ef12070cac/maintainability)](https://codeclimate.com/github/funny-bytes/sequelize-simple-cache/maintainability)
-[![npm version](https://badge.fury.io/js/sequelize-simple-cache.svg)](https://badge.fury.io/js/sequelize-simple-cache)
+[![node](https://img.shields.io/node/v/sequelize-simple-cache.svg)]()
 [![code style](https://img.shields.io/badge/code_style-airbnb-brightgreen.svg)](https://github.com/airbnb/javascript)
 [![Types](https://img.shields.io/npm/types/sequelize-simple-cache.svg)](https://www.npmjs.com/package/sequelize-simple-cache)
 [![License Status](http://img.shields.io/npm/l/sequelize-simple-cache.svg)]()
