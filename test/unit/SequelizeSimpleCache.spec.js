@@ -415,7 +415,9 @@ describe('SequelizeSimpleCache', () => {
     };
     const cache = new SequelizeSimpleCache({ User: {} }, { debug: false, ops: 1 });
     cache.init(model);
-    await new Promise((resolve) => setTimeout(() => resolve(), 1200));
+    await new Promise((resolve) => {
+      setTimeout(() => resolve(), 1200);
+    });
     clearInterval(cache.heart);
     expect(stubConsoleDebug.called).to.be.true;
   });
